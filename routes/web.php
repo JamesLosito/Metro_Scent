@@ -12,8 +12,6 @@ Route::get('/welcome', function () {
     return view('welcome');
 });
 
-
-
 Route::get('/bestseller', function () {
     return view('bestseller');
 });
