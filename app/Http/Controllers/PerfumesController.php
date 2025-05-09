@@ -3,23 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product; // Make sure this model exists
+use App\Models\Product; // Correct placement of use statement
 
 class PerfumesController extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Display a listing of perfumes.
      */
-    use App\Models\Product;
     public function index()
-    {
-        $products = Product::all(); // or paginate if needed
-        return view('perfumes.index', compact('products'));
-    }
+{
+    $products = Product::all();
+    return view('perfumes', compact('products')); // Not perfumes.index
+}
 
-    public function perfumes()
-    {
-        $products = Product::all(); // Fetch all products from DB
-        return view('perfumes', compact('product')); // Pass to view
-    }
 }

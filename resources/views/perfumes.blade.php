@@ -103,49 +103,7 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light px-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">METRO ESSENCE</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/welcome') }}">HOME</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/perfumes') }}">PERFUMES</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/bestseller') }}">BEST SELLER</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/aboutus') }}">ABOUT US</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/contact') }}">CONTACT US</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/cart') }}">CART</a>
-                    </li>
-                    <li class="nav-item">
-                        @guest
-                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">LOGIN</a>
-                        @else
-                            <a class="nav-link" href="{{ url('/profile') }}">PROFILE</a>
-                            <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">LOGOUT</a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                @csrf
-                            </form>
-                        @endguest
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    @include('components.navbar')
 
     <!-- Login/Signup Modal -->
     <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
@@ -190,48 +148,7 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-3">METRO ESSENCE</h5>
-                    <p class="small">Luxury fragrances for the modern individual.</p>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-3">SHOP</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url('/perfumes') }}">All Perfumes</a></li>
-                        <li><a href="{{ url('/new-arrivals') }}">New Arrivals</a></li>
-                        <li><a href="{{ url('/bestseller') }}">Best Sellers</a></li>
-                        <li><a href="{{ url('/gift-sets') }}">Gift Sets</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-3">HELP</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url('/contact') }}">Contact Us</a></li>
-                        <li><a href="{{ url('/faq') }}">FAQs</a></li>
-                        <li><a href="{{ url('/shipping') }}">Shipping & Returns</a></li>
-                        <li><a href="{{ url('/track-order') }}">Track Order</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-3">CONNECT</h5>
-                    <ul class="social-icons">
-                        <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                        <li><a href="#"><i class="fab fa-instagram"></i></a></li>
-                        <li><a href="#"><i class="fab fa-pinterest-p"></i></a></li>
-                        <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <p class="small">&copy; {{ date('Y') }} Metro Essence. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-
+        @include('components.footer')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
