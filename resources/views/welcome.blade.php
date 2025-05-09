@@ -175,7 +175,7 @@
                 <div class="modal-body text-center">
                     <p>Please choose an option:</p>
                     <a href="{{ url('/login') }}" class="btn tag-btn m-2">Login</a>
-                    <a href="{{ url('/signup') }}" class="btn tag-btn m-2">Signup</a>
+                    <a href="{{ url('/register') }}" class="btn tag-btn m-2">Signup</a>
                 </div>
             </div>
         </div>
