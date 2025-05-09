@@ -177,7 +177,8 @@
                 <div class="product-card">
                     <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
                     <h5 class="mt-3">{{ $product->name }}</h5>
-                    <p>{{ $product->description }}</p>
+                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
+                    <p>{{ $product->description}}</p>
                     <form method="POST" action="{{ url('/cart/add') }}">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">

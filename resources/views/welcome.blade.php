@@ -227,7 +227,7 @@
                 <div class="text-center">
                     <img src="{{ asset('images/CAPTIVATING/p8.png') }}" class="product-img" alt="Blush Enchanté Perfume">
                     <h3 class="product-name">Blush Enchanté</h3>
-                    <p class="product-price">$85.00</p>
+                    <p class="product-price">1000.00 PHP</p>
                     <p class="mx-4">
                     Blush Enchanté is a mesmerizing blend of sweet vanilla and luscious berries, creating a scent that feels both playful and sophisticated. Its delicate yet captivating aroma lingers beautifully, making it perfect for those who love a touch of elegance with a hint of sweetness. Whether worn for a casual day out or a special evening, this fragrance adds a charming and radiant aura.                    </p>
                     <button class="tag-btn">SHOP NOW</button>
@@ -237,7 +237,7 @@
                 <div class="text-center">
                     <img src="{{ asset('images/INTENSE/p11.png') }}" class="product-img" alt="Shadow Crest Perfume">
                     <h3 class="product-name">Vortex Edge</h3>
-                    <p class="product-price">$95.00</p>
+                    <p class="product-price">1000.00 PHP</p>
                     <p class="mx-4">
                     Vortex Edge is a bold and mysterious fragrance that exudes confidence and sophistication. The deep, smoky richness of oud blends seamlessly with the warm sweetness of vanilla, creating an irresistible balance of intensity and allure. This scent lingers with a magnetic presence, making it perfect for those who embrace both power and elegance.                    </p>
                     <button class="tag-btn">SHOP NOW</button>
