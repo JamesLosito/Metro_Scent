@@ -24,9 +24,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/profile') }}">PROFILE</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url('/cart') }}"><i class="fas fa-shopping-cart"></i> </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -35,6 +33,9 @@
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                 @csrf
                             </form>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('/cart') }}"><i class="fas fa-shopping-cart"></i> </a>
                         </li>
                     @endguest
                 </li>
