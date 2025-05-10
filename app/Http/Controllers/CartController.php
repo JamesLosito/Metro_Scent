@@ -4,66 +4,85 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Product;
 use App\Models\CartItem;
+use App\Models\Product;
 
 class CartController extends Controller
 {
-    public function index(Request $request)
+    // Display the user's cart items
+    public function index()
     {
+        // Ensure the user is authenticated
         $userId = Auth::id();
-        $sessionId = $request->session()->getId();
+        
+        if (!$userId) {
+            return redirect()->route('login')->with('error', 'You must be logged in to view your cart.');
+        }
+        
+        // Fetch cart items for the authenticated user and eager load the associated product
+        $cartItems = CartItem::with('product')->where('user_id', $userId)->get();
 
-        $cartItems = CartItem::with('product')
-            ->where(function ($query) use ($userId, $sessionId) {
-                if ($userId) {
-                    $query->where('user_id', $userId);
-                } else {
-                    $query->where('session_id', $sessionId);
-                }
-            })->get();
-
-        return view('cart', compact('cartItems'));
+        return view('cart.index', compact('cartItems'));
     }
 
+    // Add an item to the cart
     public function add(Request $request)
     {
-        $request->validate(['product_id' => 'required|exists:products,id']);
-
-        $productId = $request->input('product_id');
+        // Ensure the user is authenticated
         $userId = Auth::id();
-        $sessionId = $request->session()->getId();
-
-        $cartItem = CartItem::where('product_id', $productId)
-            ->where(function ($query) use ($userId, $sessionId) {
-                if ($userId) {
-                    $query->where('user_id', $userId);
-                } else {
-                    $query->where('session_id', $sessionId);
-                }
-            })
-            ->first();
-
-        if ($cartItem) {
-            $cartItem->quantity++;
-            $cartItem->save();
-        } else {
-            CartItem::create([
-                'product_id' => $productId,
-                'user_id' => $userId,
-                'session_id' => $userId ? null : $sessionId,
-                'quantity' => 1,
-            ]);
+        
+        if (!$userId) {
+            return redirect()->route('login')->with('error', 'You must be logged in to add items to your cart.');
         }
 
-        return redirect('/cart')->with('success', 'Product added to cart!');
+        // Validate the request data
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,product_id', // Ensure the product exists
+        ]);
+
+        $productId = $validated['product_id'];
+
+        // Check if the product is already in the user's cart
+        $existingItem = CartItem::where('user_id', $userId)
+                                ->where('product_id', $productId)
+                                ->first();
+
+        if ($existingItem) {
+            // If the item already exists, increase the quantity
+            $existingItem->increment('quantity', 1);
+            return back()->with('message', 'Item quantity updated in your cart!');
+        }
+
+        // If the item doesn't exist, add it to the cart
+        CartItem::create([
+            'user_id' => $userId,
+            'product_id' => $productId,
+            'quantity' => 1, // You can adjust this depending on your logic
+        ]);
+
+        return back()->with('message', 'Item added to your cart!');
     }
 
+    // Remove an item from the cart
     public function remove($id)
     {
-        $cartItem = CartItem::findOrFail($id);
-        $cartItem->delete();
+        // Ensure the user is authenticated
+        $userId = Auth::id();
+        
+        if (!$userId) {
+            return redirect()->route('login')->with('error', 'You must be logged in to remove items from your cart.');
+        }
 
-        return redirect('/cart')->with('success', 'Product removed from cart!');
+        // Fetch the cart item
+        $item = CartItem::where('id', $id)->where('user_id', $userId)->first();
+
+        if ($item) {
+            // Delete the cart item
+            $item->delete();
+            return back()->with('message', 'Item removed from your cart.');
+        }
+
+        // If item doesn't exist, return an error message
+        return back()->with('error', 'Item not found in your cart.');
     }
 }

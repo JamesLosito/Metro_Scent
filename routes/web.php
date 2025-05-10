@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PerfumesController;
 use App\Http\Controllers\BestsellerController;
 use App\Models\Product;
-
+use App\Http\Controllers\CartController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,7 +33,12 @@ Route::get('/home', function () {
     return view('home', compact('products'));
 })->name('home');
 
-use App\Http\Controllers\CartController;
+
 
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+});
+

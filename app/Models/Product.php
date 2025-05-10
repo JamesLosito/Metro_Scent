@@ -9,4 +9,9 @@ class Product extends Model
     // Add fillable fields if needed
     protected $fillable = ['product_id', 'name', 'price', 'description'];
     protected $primaryKey = 'product_id';
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
 }

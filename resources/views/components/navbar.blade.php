@@ -20,11 +20,12 @@
                             <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">LOGIN</a>
                         </li>
                     @else
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url('/cart') }}">CART</a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/profile') }}">PROFILE</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('/cart') }}"><i class="fas fa-shopping-cart"></i> </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('logout') }}"
