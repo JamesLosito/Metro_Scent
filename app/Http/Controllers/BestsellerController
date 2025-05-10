@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use App\Models\Product; // Import the Product model
+use Illuminate\Routing\Controller as BaseController;
+class BestsellerController extends Controller
+{
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    public function index()
+{
+    // Example: Fetch the top 6 products based on the number of orders
+    $bestseller = Product::orderBy('orders_count', 'desc')->take(6)->get();
+    return view('bestseller', compact('bestseller'));
+}
+}

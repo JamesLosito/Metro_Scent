@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Metro Essence</title>
+    <title>Metro Essence - Best Sellers</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <style>
@@ -41,6 +41,8 @@
         .product-img {
             max-width: 100%;
             height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .product-card {
             background: #fff;
@@ -103,25 +105,35 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
     @include('components.navbar')
-        <!-- Best Seller Section -->
+
+    <div class="container mt-5">
         <h2 class="section-title">BEST SELLER</h2>
-        <div class="col-md-4 d-flex flex-column align-items-center">
-                <img src="{{ asset('images/INTENSE/p2.png') }}" class="product-img" alt="Shadow Crest">
-                <p class="text-center mt-3">
-                    Shadow Crest is a bold and mysterious fragrance
-                </p>
-                <img src="{{ asset('images/INTENSE/p3.png') }}" class="product-img" alt="Shadow Crest">
-                <p class="text-center mt-3">
-                    Shadow Crest is a bold and mysterious fragrance
-                </p>
-                <img src="{{ asset('images/INTENSE/p4.png') }}" class="product-img" alt="Shadow Crest">
-                <p class="text-center mt-3">
-                    Shadow Crest is a bold and mysterious fragrance
-                </p>
+        <div class="row">
+            @if ($bestSellers->count() > 0)
+                @foreach ($bestSellers as $product)
+                    <div class="col-md-4 mb-4">
+                        <div class="product-card">
+                            @if ($product->image)
+                                <img src="{{ asset('images/' . $product->image) }}" class="product-img" alt="{{ $product->name }}">
+                            @else
+                                <img src="{{ asset('images/default-product.png') }}" class="product-img" alt="No Image">
+                            @endif
+                            <h5 class="mt-3">{{ $product->name }}</h5>
+                            <p class="text-center mt-2">{{ $product->description }}</p>
+                            <p class="text-center">₱ {{ number_format($product->price, 2) }}</p>
+                            <button class="btn btn-primary">View Details</button>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="col-12 text-center">
+                    <p>No best-selling products found yet.</p>
+                </div>
+            @endif
         </div>
     </div>
+
     @include('components.footer')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

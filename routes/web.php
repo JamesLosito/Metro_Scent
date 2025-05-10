@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PerfumesController;
+use App\Http\Controllers\BestsellerController;
 use App\Models\Product;
 
 use Illuminate\Support\Facades\Route;
@@ -24,10 +25,9 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/perfumes', [PerfumesController::class, 'index']);
-Route::view('/bestseller', 'bestseller')->name('bestseller');
+
 Route::view('/aboutus', 'aboutus')->name('aboutus');
 Route::view('/contact', 'contact')->name('contact');
 Route::view('/home', 'home')->name('welcome');
-
 
 
