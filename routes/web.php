@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/perfumes', [PerfumesController::class, 'index']);
+Route::get('/perfumes', [PerfumesController::class, 'index'])->name('perfumes.index');
 
 Route::view('/aboutus', 'aboutus')->name('aboutus');
 Route::view('/contact', 'contact')->name('contact');
