@@ -16,16 +16,25 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url('/aboutus') }}">ABOUT US</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">CONTACT US</a></li>
                     @guest
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">LOGIN</a>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">LOGIN</a>
+                        </li>
                     @else
-                        <a class="nav-link" href="{{ url('/profile') }}">PROFILE</a>
-                        <a class="nav-link" href="{{ route('logout') }}"
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                           LOGOUT
-                        </a>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                            @csrf
-                        </form>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('/cart') }}">CART</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('/profile') }}">PROFILE</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                LOGOUT
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        </li>
                     @endguest
                 </li>
             </ul>
