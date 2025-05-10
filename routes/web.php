@@ -21,4 +21,10 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/perfumes', [PerfumesController::class, 'index']);
+Route::view('/bestseller', 'bestseller')->name('bestseller');
+Route::view('/aboutus', 'aboutus')->name('aboutus');
+Route::view('/contact', 'contact')->name('contact');
+Route::view('/home', 'home')->name('welcome');
+
+
 
