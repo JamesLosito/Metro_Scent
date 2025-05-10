@@ -5,6 +5,7 @@ use App\Http\Controllers\PerfumesController;
 use App\Http\Controllers\BestsellerController;
 use App\Models\Product;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,3 +43,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 });
 
+Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
