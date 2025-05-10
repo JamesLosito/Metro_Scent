@@ -50,27 +50,8 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
-        <a class="navbar-brand fw-bold" href="#">METRO ESSENCE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
-            <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ url('/welcome') }}">HOME</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ '/perfumes' }}">PERFUMES</a>
-                </li>
-                <li class="nav-item mx-2"><a class="nav-link" href="{{ '/bestseller' }}">BEST SELLER</a></li>
-                <li class="nav-item mx-2"><a class="nav-link" href="{{ '/aboutus' }}">ABOUT US</a></li>
-                <li class="nav-item mx-2"><a class="nav-link" href="{{ '/contact' }}">CONTACT US</a></li>
-                <li class="nav-item mx-2"><a class="nav-link" href="#">SIGN IN</a></li>
-            </ul>
-        </div>
-    </nav>
+        @include('components.navbar')
+        @include('components.footer')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
