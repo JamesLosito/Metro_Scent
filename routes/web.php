@@ -12,9 +12,7 @@ Route::get('/', function () {
     return view('welcome', compact('bestSellers'));
 })->name('welcome');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -31,3 +29,7 @@ Route::view('/contact', 'contact')->name('contact');
 Route::view('/home', 'home')->name('welcome');
 
 
+Route::get('/home', function () {
+    $products = Product::all();
+    return view('home', compact('products'));
+})->name('home');
