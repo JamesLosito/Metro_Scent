@@ -11,7 +11,16 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item"><a class="nav-link" href="{{ url('/home') }}">HOME</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/perfumes') }}">PERFUMES</a></li>
+                <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="perfumeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        PERFUMES
+    </a>
+        <ul class="dropdown-menu" aria-labelledby="perfumeDropdown">
+            <li><a class="dropdown-item" href="{{ url('/perfumes') }}">All Products</a></li>
+            <li><a class="dropdown-item" href="{{ url('/perfumes/captivating') }}">Captivating</a></li>
+                <li><a class="dropdown-item" href="{{ url('/perfumes/intense') }}">Intense</a></li>
+            </ul>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/bestseller') }}">BEST SELLER</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/aboutus') }}">ABOUT US</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">CONTACT US</a></li>

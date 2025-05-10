@@ -16,4 +16,24 @@ class PerfumesController extends Controller
     return view('perfumes', compact('products')); // Not perfumes.index
 }
 
+// In PerfumesController.php
+
+public function captivating()
+{
+    $products = Product::where('type', 'Captivating')
+                        ->take(12) // gets products from index 0–11
+                        ->get();
+
+    return view('perfumes.captivating', compact('products'));
+}
+
+public function intense()
+{
+    $products = Product::where('type', 'Intense')
+                        ->take(12) // gets products from index 0–11
+                        ->get();
+
+    return view('perfumes.intense', compact('products'));
+}
+
 }

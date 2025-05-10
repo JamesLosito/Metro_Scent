@@ -64,3 +64,10 @@ Route::post('/process-checkout', function (Request $request) {
     // You would typically save order and clear cart here
     return redirect('/cart')->with('success', 'Order placed successfully!');
 });
+
+Route::prefix('perfumes')->group(function() {
+    Route::get('captivating', [PerfumesController::class, 'captivating']);
+    Route::get('intense', [PerfumesController::class, 'intense']);
+});
+
+
