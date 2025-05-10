@@ -198,7 +198,7 @@
     <!-- About Section -->
     <section class="container">
         <div class="about-content">
-            <img src="/api/placeholder/800/300" alt="Metro Essence Perfume Collection" class="about-image">
+            <img src="images/teamBG.jpg" alt="Metro Essence Perfume Collection" class="about-image">
             
             <p class="lead" style="font-size: 1.2rem; color: #5d1d48; font-style: italic; margin-bottom: 25px;">
                 "Crafting unique fragrances that tell your story"
@@ -248,7 +248,7 @@
                         <div class="team-photo">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3 class="team-name">Name1</h3>
+                        <h3 class="team-name">Lance Gabriele Manzanillio</h3>
                         <p class="team-position">Founder & Perfumer</p>
                     </div>
                 </div>
@@ -257,8 +257,8 @@
                         <div class="team-photo">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3 class="team-name">Name2</h3>
-                        <p class="team-position">Creative Director</p>
+                        <h3 class="team-name">Myka Naparato</h3>
+                        <p class="team-position">Frontend</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
@@ -266,8 +266,8 @@
                         <div class="team-photo">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3 class="team-name">Name2</h3>
-                        <p class="team-position">Marketing Manager</p>
+                        <h3 class="team-name">Arjay Lagunoy</h3>
+                        <p class="team-position">Frontend</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
@@ -275,8 +275,8 @@
                         <div class="team-photo">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3 class="team-name">Name3</h3>
-                        <p class="team-position">Product Designer</p>
+                        <h3 class="team-name">John James Losito</h3>
+                        <p class="team-position">Backend</p>
                     </div>
                 </div>
             </div>
