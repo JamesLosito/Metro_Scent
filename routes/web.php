@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PerfumesController;
-use App\Http\Controllers\HomeController;
+use App\Models\Product;
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'index'])->name('welcome');
+Route::get('/', function () {
+    $bestSellers = Product::all(); // Fetch the best sellers (or however you define them)
+    return view('welcome', compact('bestSellers'));
+})->name('welcome');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
