@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $bestSellers = Product::all(); // Fetch the best sellers (or however you define them)
-    return view('welcome', compact('bestSellers'));
+    return view('welcome', compact('welcome'));
 })->name('welcome');
 
 
@@ -23,7 +23,7 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/perfumes', [PerfumesController::class, 'index']);
-
+Route::get('/bestseller', [BestsellerController::class, 'index'])->name('bestseller');
 Route::view('/aboutus', 'aboutus')->name('aboutus');
 Route::view('/contact', 'contact')->name('contact');
 
@@ -33,3 +33,8 @@ Route::get('/home', function () {
     $products = Product::all();
     return view('home', compact('products'));
 })->name('home');
+
+use App\Http\Controllers\CartController;
+
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
