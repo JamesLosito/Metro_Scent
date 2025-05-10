@@ -100,6 +100,37 @@
             color: #5d1d48;
             font-size: 1.2rem;
         }
+        .hero-img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+        .hero-content {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            transform: translateY(-50%);
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        .hero-content h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        .shop-btn {
+            background-color: #5d1d48;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+        .hero-section {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -121,10 +152,65 @@
             </div>
         </div>
     </div>
-
+    <div class="hero-section">
+        <img src="{{ asset('images/perfume.jpg') }}" class="hero-img" alt="Metro Essence Banner">
+        <div class="hero-content">
+            <h1>ELEGANCE IN EVERY SCENTS</h1>
+            <p>Discover the essence of luxury with our exclusive perfume collection.</p>
+            <a href="{{ url('/perfumes') }}" class="shop-btn">SHOP NOW</a>
+        </div>
+    </div>
     <!-- Products Section -->
     <div class="container mt-5">
-        <h2 class="section-title">All Perfumes</h2>
+        <h2 class="section-title">PRODUCTS</h2>
+        <div class="row">
+        @foreach($products as $product)
+            @php
+                $folder = strtoupper($product->type);
+                $imagePath = 'images/' . $folder . '/' . $product->image;
+            @endphp
+            <div class="col-md-4">
+                <div class="product-card">
+                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+                    <h5 class="mt-3">{{ $product->name }}</h5>
+                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
+                    <p>{{ $product->description}}</p>
+                    <form method="POST" action="{{ url('/cart/add') }}">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h2 class="section-title">BESTSELLER</h2>
+        <div class="row">
+        @foreach($products as $product)
+            @php
+                $folder = strtoupper($product->type);
+                $imagePath = 'images/' . $folder . '/' . $product->image;
+            @endphp
+            <div class="col-md-4">
+                <div class="product-card">
+                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+                    <h5 class="mt-3">{{ $product->name }}</h5>
+                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
+                    <p>{{ $product->description}}</p>
+                    <form method="POST" action="{{ url('/cart/add') }}">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h2 class="section-title">SCENT</h2>
         <div class="row">
         @foreach($products as $product)
             @php

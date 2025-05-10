@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-light px-4">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="#">
+        <a class="navbar-brand d-flex align-items-center">
         <img src="{{ asset('images/metE_LOGO.png') }}" alt="Logo" style="height: 60px; width: auto; margin-right: 12px;">
         <span class="fw-bold fs-4">METRO ESSENCE</span>
             </a>
@@ -10,7 +10,7 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">HOME</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url('/home') }}">HOME</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/perfumes') }}">PERFUMES</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/bestseller') }}">BEST SELLER</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/aboutus') }}">ABOUT US</a></li>

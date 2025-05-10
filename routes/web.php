@@ -26,7 +26,7 @@ Route::get('/perfumes', [PerfumesController::class, 'index']);
 
 Route::view('/aboutus', 'aboutus')->name('aboutus');
 Route::view('/contact', 'contact')->name('contact');
-Route::view('/home', 'home')->name('welcome');
+
 
 
 Route::get('/home', function () {
