@@ -6,7 +6,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-```
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
@@ -15,7 +14,7 @@
 
     <!-- Scripts -->
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+
 </head>
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100">
@@ -29,8 +28,13 @@
                 </div>
             </header>
         @endisset
+
+        <!-- THIS IS REQUIRED -->
+        <main class="py-4">
+            @yield('content')
+        </main>
     </div>
 </body>
-```
+
 
 </html>
