@@ -100,6 +100,25 @@
             color: #5d1d48;
             font-size: 1.2rem;
         }
+        .out-of-stock-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(93, 29, 72, 0.9);
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        .product-card img {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .product-card.out-of-stock img {
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -123,39 +142,46 @@
     </div>
 
     <!-- Products Section -->
-<div class="container mt-5">
-    <h2 class="section-title">All Perfumes</h2>
-    <div class="row">
-    @foreach($products as $product)
-    @php
-        $folder = strtoupper($product->type);
-        $imagePath = 'images/' . $folder . '/' . $product->image;
-    @endphp
-    <div class="col-md-4">
-        <div class="product-card position-relative">
-            <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
-                <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-                <h5 class="mt-3">{{ $product->name }}</h5>
-                <h6 class="text-muted">{{ $product->price }} PHP</h6>
-                <p>{{ Str::limit($product->description, 100) }}</p>
-            </a>
-            @auth
-                <form method="POST" action="{{ url('/cart/add') }}">
-                    @csrf
-                    <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                    <button type="submit" class="btn btn-primary mt-2">Add to Cart</button>
-                </form>
-            @else
-                <a href="{{ url('/register') }}" class="btn btn-primary mt-2">Add to Cart</a>
-            @endauth
+    <div class="container mt-5">
+        <h2 class="section-title">All Perfumes</h2>
+        <div class="row">
+            @foreach($products as $product)
+                @php
+                    $folder = strtoupper($product->type);
+                    $imagePath = 'images/' . $folder . '/' . $product->image;
+                @endphp
+                <div class="col-md-4">
+                    <div class="product-card position-relative {{ $product->stock <= 0 ? 'out-of-stock' : '' }}">
+                        <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
+
+                            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+                            <h5 class="mt-3">{{ $product->name }}</h5>
+                            <h6 class="text-muted">{{ $product->price }} PHP</h6>
+                            <h6 class="text-muted">{{ $product->stock }} left</h6>
+                            <p>{{ Str::limit($product->description, 100) }}</p>
+                        </a>
+
+                        @auth
+                            @if($product->stock > 0)
+                                <form method="POST" action="{{ url('/cart/add') }}">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+                                    <button type="submit" class="btn btn-primary mt-2">Add to Cart</button>
+                                </form>
+                            @else
+                                <button class="btn btn-secondary mt-2" disabled>Sold Out</button>
+                            @endif
+                        @else
+                            <a href="{{ url('/register') }}" class="btn btn-primary mt-2">Add to Cart</a>
+                        @endauth
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
-@endforeach
-    </div>
-</div>
 
+    @include('components.footer')
 
-        @include('components.footer')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

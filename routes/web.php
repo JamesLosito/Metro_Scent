@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Models\CartItem;
+use Illuminate\Http\Request;
 
 Route::get('/', function () {
     return view('welcome');  // Make sure resources/views/welcome.blade.php exists
@@ -44,3 +46,19 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
+
+Route::post('/checkout', function (Request $request) {
+    $selectedIds = $request->input('selected_items', []);
+    $selectedItems = CartItem::with('product')->whereIn('id', $selectedIds)->get();
+
+    if ($selectedItems->isEmpty()) {
+        return redirect('/cart')->with('error', 'No items selected.');
+    }
+
+    return view('checkout', compact('selectedItems'));
+});
+
+Route::post('/process-checkout', function (Request $request) {
+    // You would typically save order and clear cart here
+    return redirect('/cart')->with('success', 'Order placed successfully!');
+});
