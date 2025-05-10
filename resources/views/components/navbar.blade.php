@@ -7,7 +7,7 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/welcome') }}">HOME</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">HOME</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/perfumes') }}">PERFUMES</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/bestseller') }}">BEST SELLER</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url('/aboutus') }}">ABOUT US</a></li>
