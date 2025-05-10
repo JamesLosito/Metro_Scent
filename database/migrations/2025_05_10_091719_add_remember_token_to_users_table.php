@@ -9,18 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->rememberToken()->nullable();
+        $table->rememberToken(); // This adds a nullable string 'remember_token'
     });
 }
 
-public function down()
+public function down(): void
 {
     Schema::table('users', function (Blueprint $table) {
         $table->dropColumn('remember_token');
     });
 }
+
 
 };
