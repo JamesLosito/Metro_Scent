@@ -13,5 +13,10 @@ class Product extends Model
     {
         return $this->hasMany(CartItem::class);
     }
+    public function show($id)
+{
+    $product = Product::findOrFail($id);
+    return view('view_product', compact('product'));
+}
 
 }

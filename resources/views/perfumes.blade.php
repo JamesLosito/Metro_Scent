@@ -152,29 +152,20 @@
                 @endphp
                 <div class="col-md-4">
                     <div class="product-card position-relative {{ $product->stock <= 0 ? 'out-of-stock' : '' }}">
-                        <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
+    <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
+        @if($product->stock <= 0)
+            <span class="out-of-stock-label">Out of Stock</span>
+        @endif
 
-                            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-                            <h5 class="mt-3">{{ $product->name }}</h5>
-                            <h6 class="text-muted">{{ $product->price }} PHP</h6>
-                            <h6 class="text-muted">{{ $product->stock }} left</h6>
-                            <p>{{ Str::limit($product->description, 100) }}</p>
-                        </a>
+        <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+        <h5 class="mt-3">{{ $product->name }}</h5>
+        <h6 class="text-muted">{{ $product->price }} PHP</h6>
+        <h6 class="text-muted">{{ $product->stock }} left</h6>
+        <p>{{ Str::limit($product->description, 100) }}</p>
+    </a>
 
-                        @auth
-                            @if($product->stock > 0)
-                                <form method="POST" action="{{ url('/cart/add') }}">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                                    <button type="submit" class="btn btn-primary mt-2">Add to Cart</button>
-                                </form>
-                            @else
-                                <button class="btn btn-secondary mt-2" disabled>Sold Out</button>
-                            @endif
-                        @else
-                            <a href="{{ url('/register') }}" class="btn btn-primary mt-2">Add to Cart</a>
-                        @endauth
-                    </div>
+    <a href="{{ url('/view_product/' . $product->product_id) }}" class="btn btn-primary mt-2">View Details</a>
+</div>
                 </div>
             @endforeach
         </div>

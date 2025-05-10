@@ -29,6 +29,8 @@ Route::get('/bestseller', [BestsellerController::class, 'index'])->name('bestsel
 Route::view('/aboutus', 'aboutus')->name('aboutus');
 Route::view('/contact', 'contact')->name('contact');
 
+Route::get('/view_product/{id}', [ProductController::class, 'show'])->name('product.view');
+
 
 
 Route::get('/home', function () {

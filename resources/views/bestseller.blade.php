@@ -29,7 +29,6 @@
             letter-spacing: 1px;
         }
         .section-title {
-            font-family: 'Times New Roman', serif;
             font-size: 1.5rem;
             font-weight: 400;
             color: #5d1d48;
@@ -51,6 +50,7 @@
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            position: relative;
             transition: transform 0.3s ease;
         }
         .product-card:hover {
@@ -69,6 +69,19 @@
         }
         .btn-primary:hover {
             background-color: #4a1839;
+        }
+        .out-of-stock-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(93, 29, 72, 0.9);
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 5px;
+            z-index: 2;
         }
         footer {
             background-color: #f8f8f8;
@@ -112,17 +125,29 @@
         <div class="row">
             @if ($bestSellers->count() > 0)
                 @foreach ($bestSellers as $product)
+                    @php
+                        $folder = strtoupper($product->type);
+                        $imagePath = 'images/' . $folder . '/' . $product->image;
+                    @endphp
                     <div class="col-md-4 mb-4">
                         <div class="product-card">
+                            @if ($product->stock == 0)
+                                <div class="out-of-stock-label">Out of Stock</div>
+                            @endif
                             @if ($product->image)
-                                <img src="{{ asset('images/' . $product->image) }}" class="product-img" alt="{{ $product->name }}">
+                                <img src="{{ asset($imagePath) }}" class="product-img" alt="{{ $product->name }}">
                             @else
                                 <img src="{{ asset('images/default-product.png') }}" class="product-img" alt="No Image">
                             @endif
                             <h5 class="mt-3">{{ $product->name }}</h5>
                             <p class="text-center mt-2">{{ $product->description }}</p>
+                            <p class="text-center mt-2">Stock: {{ $product->stock }}</p>
                             <p class="text-center">₱ {{ number_format($product->price, 2) }}</p>
-                            <button class="btn btn-primary">View Details</button>
+                            @if ($product->stock == 0)
+                                <button class="btn btn-secondary" disabled>Sold Out</button>
+                            @else
+                                <button class="btn btn-primary">View Details</button>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -135,6 +160,7 @@
     </div>
 
     @include('components.footer')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
