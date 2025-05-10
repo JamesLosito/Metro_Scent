@@ -1,4 +1,4 @@
-@include('components.navbar')
+@extends('layouts.app') <!-- if you use layout -->
 
 @section('content')
 <div class="container mt-5">
@@ -42,4 +42,3 @@
     @endif
 </div>
 @endsection
-@include('components.footer')
