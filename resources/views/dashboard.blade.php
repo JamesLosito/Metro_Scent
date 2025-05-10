@@ -16,7 +16,7 @@
                         <div class="bg-gray-100 p-4 rounded shadow">
                             <h4 class="font-semibold mb-2">Featured</h4>
                             <p>Check out our new perfume collection!</p>
-                            <a href="{{ route('welcome') }}" class="text-indigo-600 hover:underline">Shop Now</a>
+                            <a href="{{ route('dasboard') }}" class="text-indigo-600 hover:underline">Shop Now</a>
                         </div>
                         <div class="bg-gray-100 p-4 rounded shadow">
                             <h4 class="font-semibold mb-2">Account</h4>
