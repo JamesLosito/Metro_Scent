@@ -21,6 +21,6 @@ class HomeController extends Controller
     public function index()
     {
         $bestSellers = Product::all(); 
-        return view('welcome', compact('bestSellers'));
+        return view('welcome');
     }
 }

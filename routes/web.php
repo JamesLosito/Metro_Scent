@@ -8,9 +8,8 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $bestSellers = Product::all(); // Fetch the best sellers (or however you define them)
-    return view('welcome', compact('welcome'));
-})->name('welcome');
+    return view('welcome');  // Make sure resources/views/welcome.blade.php exists
+});
 
 
 
