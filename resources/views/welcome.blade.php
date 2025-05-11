@@ -72,6 +72,7 @@
             color: white;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-decoration: none;
         }
         .featured-product {
             margin-bottom: 30px;
@@ -192,7 +193,7 @@
                     <p class="product-price">1000.00 PHP</p>
                     <p class="mx-4">
                     Blush Enchanté is a mesmerizing blend of sweet vanilla and luscious berries, creating a scent that feels both playful and sophisticated. Its delicate yet captivating aroma lingers beautifully, making it perfect for those who love a touch of elegance with a hint of sweetness. Whether worn for a casual day out or a special evening, this fragrance adds a charming and radiant aura.                    </p>
-                    <button class="tag-btn">SHOP NOW</button>
+                    <a href="/perfumes" class="tag-btn">SHOP NOW</a>
                 </div>
             </div>
             <div class="col-md-6 featured-product">
@@ -202,7 +203,7 @@
                     <p class="product-price">1000.00 PHP</p>
                     <p class="mx-4">
                     Vortex Edge is a bold and mysterious fragrance that exudes confidence and sophistication. The deep, smoky richness of oud blends seamlessly with the warm sweetness of vanilla, creating an irresistible balance of intensity and allure. This scent lingers with a magnetic presence, making it perfect for those who embrace both power and elegance.                    </p>
-                    <button class="tag-btn">SHOP NOW</button>
+                    <a href="/perfumes" class="tag-btn">SHOP NOW</a>
                 </div>
             </div>
         </div>
@@ -215,7 +216,7 @@
                 <img src="{{ asset('images/INTENSE/p'.($index+2).'.png') }}" class="product-img" alt="{{ $name }}">
                 <h3 class="product-name">{{ $name }}</h3>
                 <p class="product-price">${{ 75 + ($index * 5) }}.00</p>
-                <button class="tag-btn">SHOP</button>
+                <a href="/perfumes" class="tag-btn">SHOP NOW</a>
             </div>
             @endforeach
         </div>
