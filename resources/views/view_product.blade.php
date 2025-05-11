@@ -23,15 +23,18 @@ if ($result->num_rows == 1) {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Product</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-@include('components.navbar');
-<body class="bg-light">
 
+<body class="bg-light">
+<!-- Include Navbar -->
+<?php include('components/navbar.php'); ?>
 <div class="container my-5">
     <div class="card shadow p-4">
         <div class="row">
@@ -57,7 +60,11 @@ if ($result->num_rows == 1) {
     </div>
 </div>
 
+<!-- Include Footer -->
+<?php include('components/footer.php'); ?>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
