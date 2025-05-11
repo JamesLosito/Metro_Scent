@@ -57,11 +57,20 @@
                             <div class="flex-grow-1">
                                 <strong>{{ $item->product->name }}</strong><br>
                                 ₱{{ number_format($item->product->price, 2) }} x 
-                                <input type="number" name="item_quantity[{{ $item->id }}]" value="{{ $item->quantity }}" min="1" class="form-control form-control-sm w-auto d-inline-block" style="max-width: 70px;" readonly>
+                                <input 
+                                    type="number" 
+                                    name="item_quantity[{{ $item->id }}]" 
+                                    value="{{ $item->quantity }}" 
+                                    min="1" 
+                                    step="1"
+                                    class="form-control form-control-sm w-auto d-inline-block" 
+                                    style="max-width: 70px;" 
+                                    readonly
+                                >
                             </div>
                             <span id="itemTotal{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
                         </li>
-                        <!-- Hidden field to track selected items -->
+                        <!-- Hidden inputs -->
                         <input type="hidden" name="selected_items[]" value="{{ $item->id }}">
                         <input type="hidden" name="price[{{ $item->id }}]" value="{{ $item->product->price }}">
                     @endforeach
@@ -81,43 +90,61 @@
                 <div class="mb-3">
                     <input type="text" name="address" class="form-control" placeholder="Shipping Address" required>
                 </div>
+                <!-- Stripe Card Element -->
+                <div class="mb-3">
+                    <label for="card-element" class="form-label">Credit or Debit Card</label>
+                    <div id="card-element" class="form-control p-3">
+                    <!-- Stripe Element will be inserted here -->
+                    </div>
+                    <div id="card-errors" class="text-danger mt-2"></div>
+                </div>
 
-                <button type="submit" class="btn btn-primary">Confirm Order</button>
+                <button type="submit" class="btn btn-primary">Confirm Order & Pay</button>
             </form>
         @else
             <div class="alert alert-info">No items selected for checkout.</div>
         @endif
     </div>
 
+    <script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe("{{ config('services.stripe.key') }}");
+
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const {paymentMethod, error} = await stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+                name: form.full_name.value,
+                email: form.email.value,
+                address: {
+                    line1: form.address.value,
+                },
+            },
+        });
+
+        if (error) {
+            document.getElementById('card-errors').textContent = error.message;
+        } else {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'payment_method_id';
+            hiddenInput.value = paymentMethod.id;
+            form.appendChild(hiddenInput);
+            form.submit();
+        }
+    });
+</script>
+
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Optional: Script to dynamically update the total as quantities change
-        const quantityInputs = document.querySelectorAll('input[name^="item_quantity"]');
-        const grandTotalDisplay = document.getElementById('grandTotal');
-
-        quantityInputs.forEach(input => {
-            input.addEventListener('change', function () {
-                let grandTotal = 0;
-
-                quantityInputs.forEach(input => {
-                    const itemId = input.name.match(/\d+/)[0];
-                    const quantity = parseInt(input.value, 10);
-                    const price = parseFloat(document.querySelector(`input[name="price[${itemId}]"]`).value);
-                    const itemTotal = price * quantity;
-                    grandTotal += itemTotal;
-
-                    // Update the total amount for this item (optional)
-                    const itemTotalSpan = document.querySelector(`#itemTotal${itemId}`);
-                    if (itemTotalSpan) {
-                        itemTotalSpan.textContent = `₱${itemTotal.toFixed(2)}`;
-                    }
-                });
-
-                grandTotalDisplay.textContent = grandTotal.toFixed(2);
-            });
-        });
-    </script>
 </body>
 </html>
