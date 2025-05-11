@@ -5,6 +5,7 @@ use App\Http\Controllers\PerfumesController;
 use App\Http\Controllers\BestsellerController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CheckoutController;
 use App\Models\Product;
@@ -44,6 +45,8 @@ Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
 
+Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+
 Route::middleware('auth')->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 });
@@ -61,14 +64,10 @@ Route::post('/checkout', function (Request $request) {
     return view('checkout', compact('selectedItems'));
 });
 
-Route::post('/process-checkout', function (Request $request) {
-    // You would typically save order and clear cart here
-    return redirect('/cart')->with('success', 'Order placed successfully!');
-});
-
-Route::get('/checkout/success', function () {
-    return view('checkout-success');
-})->name('checkout.success');
+Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
+Route::post('/process-checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.processCheckout');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
 Route::prefix('perfumes')->group(function() {
     Route::get('captivating', [PerfumesController::class, 'captivating']);
@@ -82,8 +81,5 @@ Route::post('/send-message', [ContactController::class, 'send']);
 Route::get('/redirect-to-payment', [PaymentController::class, 'redirectToStripe'])->name('payment.redirect');
 Route::get('/payment-success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
-
-Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
 

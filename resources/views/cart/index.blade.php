@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cart - Metro Essence</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
@@ -121,7 +121,7 @@
         @if ($cartItems->isEmpty())
             <div class="alert alert-info">Your cart is empty.</div>
         @else
-            <form method="POST" action="{{ url('/checkout') }}">
+            <form method="POST" action="{{ route('checkout') }}" id="checkoutForm">
                 @csrf
 
                 <ul class="list-group mb-4">
@@ -141,7 +141,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}">
+                                        <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}">
                                         <label class="form-check-label" for="cartItem{{ $item->id }}">
                                             <strong>{{ $item->product->name }}</strong><br>
                                             ₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display">{{ $item->quantity }}</span>
@@ -165,8 +165,12 @@
                 </ul>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4>Total: ₱<span id="cartTotal">0.00</span></h4>
-                    <button type="submit" class="btn btn-success">Checkout Selected</button>
+                    <div>
+                        <h6>Subtotal: ₱<span id="subtotal">0.00</span></h6>
+                        <h6>Shipping Fee: ₱<span id="shippingFee">0.00</span></h6>
+                        <h4>Total: ₱<span id="cartTotal">0.00</span></h4>
+                    </div>
+                    <button type="submit" class="btn btn-success" id="checkoutButton">Checkout Selected</button>
                 </div>
             </form>
         @endif
@@ -176,23 +180,51 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
+            const checkboxes = document.querySelectorAll('.item-checkbox');
             const cartTotalDisplay = document.getElementById('cartTotal');
+            const subtotalDisplay = document.getElementById('subtotal');
+            const shippingFeeDisplay = document.getElementById('shippingFee');
+            const checkoutForm = document.getElementById('checkoutForm');
+            const checkoutButton = document.getElementById('checkoutButton');
+            let shippingFee = 50;
 
             let itemTotals = @json($cartItems->mapWithKeys(function ($item) {
                 return [$item->id => $item->product ? $item->product->price * $item->quantity : 0];
             }));
 
             function updateTotal() {
-                let total = 0;
+                let subtotal = 0;
+                let hasSelected = false;
+
                 checkboxes.forEach(checkbox => {
                     if (checkbox.checked) {
                         const itemId = checkbox.value;
-                        total += itemTotals[itemId] || 0;
+                        subtotal += itemTotals[itemId] || 0;
+                        hasSelected = true;
                     }
                 });
+
+                let total = subtotal;
+                if (hasSelected) {
+                    total += shippingFee;
+                }
+
+                subtotalDisplay.textContent = subtotal.toFixed(2);
+                shippingFeeDisplay.textContent = hasSelected ? shippingFee.toFixed(2) : "0.00";
                 cartTotalDisplay.textContent = total.toFixed(2);
+                
+                // Enable/disable checkout button based on selection
+                checkoutButton.disabled = !hasSelected;
             }
+
+            // Add form submission validation
+            checkoutForm.addEventListener('submit', function(e) {
+                const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+                if (selectedItems.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one item to checkout.');
+                }
+            });
 
             function ajaxUpdateQuantity(itemId, newQty) {
                 fetch("{{ route('cart.updateQuantity') }}", {
@@ -219,11 +251,7 @@
                 .catch(error => console.error("Error updating quantity:", error));
             }
 
-            const incrementBtns = document.querySelectorAll('.increment');
-            const decrementBtns = document.querySelectorAll('.decrement');
-            const quantityInputs = document.querySelectorAll('.quantity');
-
-            incrementBtns.forEach(button => {
+            document.querySelectorAll('.increment').forEach(button => {
                 button.addEventListener('click', function () {
                     const input = document.querySelector(`.quantity[data-id="${button.dataset.id}"]`);
                     let value = parseInt(input.value, 10) + 1;
@@ -232,7 +260,7 @@
                 });
             });
 
-            decrementBtns.forEach(button => {
+            document.querySelectorAll('.decrement').forEach(button => {
                 button.addEventListener('click', function () {
                     const input = document.querySelector(`.quantity[data-id="${button.dataset.id}"]`);
                     let value = Math.max(1, parseInt(input.value, 10) - 1);
@@ -241,7 +269,7 @@
                 });
             });
 
-            quantityInputs.forEach(input => {
+            document.querySelectorAll('.quantity').forEach(input => {
                 input.addEventListener('change', function () {
                     let value = Math.max(1, parseInt(input.value, 10));
                     input.value = value;

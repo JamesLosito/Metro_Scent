@@ -5,10 +5,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    protected $fillable = ['full_name', 'email', 'address', 'total'];
+    protected $fillable = [
+        'full_name', 
+        'email', 
+        'address', 
+        'total', 
+        'stripe_payment_intent',
+        'user_id'
+    ];
 
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
