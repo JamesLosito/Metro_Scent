@@ -91,9 +91,15 @@ public function processCheckout(Request $request)
 
         // Save Order Items
         foreach ($selectedItems as $item) {
+            $cartItem = CartItem::find($item['id']);
+            if (!$cartItem) {
+                throw new \Exception('Cart item not found');
+            }
+
             $orderItem = new OrderItem();
             $orderItem->order_id = $order->id;
             $orderItem->cart_item_id = $item['id'];
+            $orderItem->product_id = $cartItem->product_id;
             $orderItem->quantity = $item['quantity'];
             $orderItem->price = $item['price'];
             
@@ -175,6 +181,11 @@ public function createPaymentIntent(Request $request)
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
+}
+
+public function success()
+{
+    return view('checkout.success');
 }
 
 }
