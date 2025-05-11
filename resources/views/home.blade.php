@@ -52,7 +52,8 @@
             transition: transform 0.3s ease;
         }
         .product-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
         }
         .tag-btn, .btn-primary {
             font-size: 0.7rem;
@@ -131,122 +132,108 @@
         .hero-section {
             position: relative;
         }
+        .carousel-item {
+            transition: transform 0.3s ease-in-out;
+        }
+        .carousel-inner {
+            display: flex;
+        }
+        .carousel-item img {
+            max-height: 400px;
+            object-fit: cover;
+        }
+        @media (max-width: 768px) {
+            .row-cols-md-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 576px) {
+            .row-cols-md-3 {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     @include('components.navbar')
 
-    <!-- Login/Signup Modal -->
-    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="authModalLabel">Welcome</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p>Please choose an option:</p>
-                    <a href="{{ url('/login') }}" class="btn tag-btn m-2">Login</a>
-                    <a href="{{ url('/signup') }}" class="btn tag-btn m-2">Signup</a>
-                </div>
+    <!-- Auth Notice -->
+    <div class="container text-end mt-3">
+        @auth
+            <p class="text-muted">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</p>
+        @else
+            <div class="text-end">
+                <a href="{{ url('/login') }}" class="btn tag-btn m-1">Login</a>
+                <a href="{{ url('/register') }}" class="btn tag-btn m-1">Signup</a>
             </div>
-        </div>
+        @endauth
     </div>
+
+    <!-- Hero Section -->
     <div class="hero-section">
         <img src="{{ asset('images/perfume.jpg') }}" class="hero-img" alt="Metro Essence Banner">
         <div class="hero-content">
-            <h1>ELEGANCE IN EVERY SCENTS</h1>
+            <h1>ELEGANCE IN EVERY SCENT</h1>
             <p>Discover the essence of luxury with our exclusive perfume collection.</p>
             <a href="{{ url('/perfumes') }}" class="shop-btn">SHOP NOW</a>
         </div>
     </div>
-    <!-- Products Section -->
+
+    <!-- Recommended for You - Carousel Section -->
     <div class="container mt-5">
-        <h2 class="section-title">PRODUCTS</h2>
-        <div class="row">
-        @foreach($products as $product)
-            @php
-                $folder = strtoupper($product->type);
-                $imagePath = 'images/' . $folder . '/' . $product->image;
-            @endphp
-            <div class="col-md-4">
-                <div class="product-card">
-                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-                    <h5 class="mt-3">{{ $product->name }}</h5>
-                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
-                    <p>{{ $product->description}}</p>
-                    @auth
-                    <form method="POST" action="{{ url('/cart/add') }}">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                        <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
-                    </form>
-                @else
-                    <a href="{{ url('/register') }}" class="btn btn-primary mt-3">Add to Cart</a>
-                @endauth
-                </div>
+        <h2 class="section-title">Recommended for You</h2>
+        <div id="recommendedCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @foreach($products->chunk(3) as $index => $chunk)
+                    <div class="carousel-item @if($index == 0) active @endif">
+                        <div class="row">
+                            @foreach($chunk as $product)
+                                @include('components.product-card', ['product' => $product])
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
-        @endforeach
-        </div>
-    </div>
-    <div class="container mt-5">
-        <h2 class="section-title">BESTSELLER</h2>
-        <div class="row">
-        @foreach($products as $product)
-            @php
-                $folder = strtoupper($product->type);
-                $imagePath = 'images/' . $folder . '/' . $product->image;
-            @endphp
-            <div class="col-md-4">
-                <div class="product-card">
-                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-                    <h5 class="mt-3">{{ $product->name }}</h5>
-                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
-                    <p>{{ $product->description}}</p>
-                    @auth
-                    <form method="POST" action="{{ url('/cart/add') }}">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                        <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
-                    </form>
-                @else
-                    <a href="{{ url('/register') }}" class="btn btn-primary mt-3">Add to Cart</a>
-                @endauth
-                </div>
-            </div>
-        @endforeach
-        </div>
-    </div>
-    <div class="container mt-5">
-        <h2 class="section-title">SCENT</h2>
-        <div class="row">
-        @foreach($products as $product)
-            @php
-                $folder = strtoupper($product->type);
-                $imagePath = 'images/' . $folder . '/' . $product->image;
-            @endphp
-            <div class="col-md-4">
-                <div class="product-card">
-                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-                    <h5 class="mt-3">{{ $product->name }}</h5>
-                    <h6 class="text-muted">{{ $product->price }} PHP</h6>
-                    <p>{{ $product->description}}</p>
-                    @auth
-                    <form method="POST" action="{{ url('/cart/add') }}">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                        <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
-                    </form>
-                @else
-                    <a href="{{ url('/register') }}" class="btn btn-primary mt-3">Add to Cart</a>
-                @endauth
-                </div>
-            </div>
-        @endforeach
+            <button class="carousel-control-prev" type="button" data-bs-target="#recommendedCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#recommendedCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
         </div>
     </div>
 
-        @include('components.footer')
+    <!-- General Product Display Section -->
+    @php
+        $sections = [
+            'PRODUCTS' => $products,
+            'Bestsellers' => $products->shuffle()->take(6),
+            'Signature moods' => $products->filter(fn($p) => in_array($p->type, ['Captivating', 'Intense', 'Fresh', 'Floral']))->take(4)
+        ];
+    @endphp
+
+    @foreach($sections as $sectionTitle => $sectionProducts)
+        <div class="container mt-5">
+            <h2 class="section-title">{{ $sectionTitle }}</h2>
+            <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+                @foreach($sectionProducts as $product)
+                    @include('components.product-card', ['product' => $product])
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+
+    @if ($sectionTitle === 'Signature moods')
+    <div class="text-end mb-3">
+        <a href="{{ url('/perfumes?type=scent') }}" class="btn btn-primary">View More SCENT Types</a>
+    </div>
+    @endif
+
+    <!-- Footer -->
+    @include('components.footer')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
