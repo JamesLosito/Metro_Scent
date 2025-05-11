@@ -75,6 +75,9 @@ Route::prefix('perfumes')->group(function() {
     Route::get('intense', [PerfumesController::class, 'intense']);
 });
 
+Route::get('/view.product/{id}', [ProductController::class, 'show']);
+
+Route::post('/send-message', [ContactController::class, 'send']);
 
 Route::get('/redirect-to-payment', [PaymentController::class, 'redirectToStripe'])->name('payment.redirect');
 Route::get('/payment-success', [PaymentController::class, 'success'])->name('payment.success');
