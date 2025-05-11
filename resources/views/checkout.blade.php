@@ -56,16 +56,19 @@
                             </div>
                             <div class="flex-grow-1">
                                 <strong>{{ $item->product->name }}</strong><br>
-                                ₱{{ number_format($item->product->price, 2) }} x {{ $item->quantity }}
+                                ₱{{ number_format($item->product->price, 2) }} x 
+                                <input type="number" name="item_quantity[{{ $item->id }}]" value="{{ $item->quantity }}" min="1" class="form-control form-control-sm w-auto d-inline-block" style="max-width: 70px;" readonly>
                             </div>
-                            <span>₱{{ number_format($itemTotal, 2) }}</span>
+                            <span id="itemTotal{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
                         </li>
+                        <!-- Hidden field to track selected items -->
                         <input type="hidden" name="selected_items[]" value="{{ $item->id }}">
+                        <input type="hidden" name="price[{{ $item->id }}]" value="{{ $item->product->price }}">
                     @endforeach
                 </ul>
 
                 <div class="mb-4">
-                    <h4>Total Amount: ₱{{ number_format($grandTotal, 2) }}</h4>
+                    <h4>Total Amount: ₱<span id="grandTotal">{{ number_format($grandTotal, 2) }}</span></h4>
                 </div>
 
                 <h5>Billing Information</h5>
@@ -88,5 +91,33 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Optional: Script to dynamically update the total as quantities change
+        const quantityInputs = document.querySelectorAll('input[name^="item_quantity"]');
+        const grandTotalDisplay = document.getElementById('grandTotal');
+
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                let grandTotal = 0;
+
+                quantityInputs.forEach(input => {
+                    const itemId = input.name.match(/\d+/)[0];
+                    const quantity = parseInt(input.value, 10);
+                    const price = parseFloat(document.querySelector(`input[name="price[${itemId}]"]`).value);
+                    const itemTotal = price * quantity;
+                    grandTotal += itemTotal;
+
+                    // Update the total amount for this item (optional)
+                    const itemTotalSpan = document.querySelector(`#itemTotal${itemId}`);
+                    if (itemTotalSpan) {
+                        itemTotalSpan.textContent = `₱${itemTotal.toFixed(2)}`;
+                    }
+                });
+
+                grandTotalDisplay.textContent = grandTotal.toFixed(2);
+            });
+        });
+    </script>
 </body>
 </html>

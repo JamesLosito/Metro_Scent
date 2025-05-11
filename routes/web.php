@@ -14,8 +14,6 @@ Route::get('/', function () {
     return view('welcome');  // Make sure resources/views/welcome.blade.php exists
 });
 
-
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -42,6 +40,7 @@ Route::get('/home', function () {
 
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
 
 Route::middleware('auth')->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -65,6 +64,10 @@ Route::post('/process-checkout', function (Request $request) {
     return redirect('/cart')->with('success', 'Order placed successfully!');
 });
 
+Route::get('/checkout/success', function () {
+    return view('checkout-success');
+})->name('checkout.success');
+
 Route::prefix('perfumes')->group(function() {
     Route::get('captivating', [PerfumesController::class, 'captivating']);
     Route::get('intense', [PerfumesController::class, 'intense']);
@@ -73,4 +76,5 @@ Route::prefix('perfumes')->group(function() {
 Route::get('/view.product/{id}', [ProductController::class, 'show']);
 
 Route::post('/send-message', [ContactController::class, 'send']);
+
 

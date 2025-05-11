@@ -85,4 +85,31 @@ class CartController extends Controller
         // If item doesn't exist, return an error message
         return back()->with('error', 'Item not found in your cart.');
     }
+
+    public function updateQuantity(Request $request)
+{
+    $request->validate([
+        'item_id' => 'required|integer|exists:cart_items,id',
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    $cartItem = CartItem::where('id', $request->item_id)
+                        ->where('user_id', Auth::id())
+                        ->with('product')
+                        ->first();
+
+    if (!$cartItem) {
+        return response()->json(['success' => false, 'message' => 'Cart item not found.'], 404);
+    }
+
+    $cartItem->quantity = $request->quantity;
+    $cartItem->save();
+
+    return response()->json([
+        'success' => true,
+        'new_total' => $cartItem->product->price * $cartItem->quantity,
+        'message' => 'Quantity updated successfully.'
+    ]);
+}
+
 }
