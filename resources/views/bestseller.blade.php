@@ -28,7 +28,7 @@
             font-size: 0.9rem;
             letter-spacing: 1px;
         }
-        .section-title {
+        .h2 {
             font-size: 1.5rem;
             font-weight: 400;
             color: #5d1d48;
@@ -121,7 +121,7 @@
     @include('components.navbar')
 
     <div class="container mt-5">
-        <h2 class="section-title">BEST SELLER</h2>
+        <h2 class="h2">BEST SELLER</h2>
         <div class="row">
             @if ($bestSellers->count() > 0)
                 @foreach ($bestSellers as $product)

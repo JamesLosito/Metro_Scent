@@ -29,13 +29,7 @@
             font-size: 0.9rem;
             letter-spacing: 1px;
         }
-        .page-header {
-            background-color: #5d1d48;
-            color: white;
-            padding: 60px 0;
-            margin-bottom: 50px;
-            text-align: center;
-        }
+
         .page-title {
             font-family: 'Times New Roman', serif;
             font-size: 2.5rem;
@@ -182,19 +176,23 @@
                 margin-bottom: 20px;
             }
         }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #5d1d48;
+            margin: 40px 0 30px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     @include('components.navbar')
-
-    <!-- Page Header -->
-    <header class="page-header">
-        <div class="container">
-            <h1 class="page-title">About Us</h1>
-        </div>
-    </header>
-
+ 
+    <h1 class="page-title">About Us</h1>
+        
     <!-- About Section -->
     <section class="container">
         <div class="about-content">

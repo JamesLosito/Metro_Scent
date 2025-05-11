@@ -143,7 +143,7 @@
 
     <!-- Products Section -->
     <div class="container mt-5">
-        <h2 class="section-title">Intense</h2>
+        <h2 class="section-title">Intense Perfumes</h2>
         <div class="row">
             @foreach($products as $product)
                 @php
