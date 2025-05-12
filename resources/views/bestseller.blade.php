@@ -134,19 +134,26 @@
                             @if ($product->stock == 0)
                                 <div class="out-of-stock-label">Out of Stock</div>
                             @endif
-                            @if ($product->image)
-                                <img src="{{ asset($imagePath) }}" class="product-img" alt="{{ $product->name }}">
-                            @else
-                                <img src="{{ asset('images/default-product.png') }}" class="product-img" alt="No Image">
-                            @endif
-                            <h5 class="mt-3">{{ $product->name }}</h5>
-                            <p class="text-center mt-2">{{ $product->description }}</p>
-                            <p class="text-center mt-2">Stock: {{ $product->stock }}</p>
-                            <p class="text-center">₱ {{ number_format($product->price, 2) }}</p>
+                            <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit;">
+                                @if ($product->image)
+                                    <img src="{{ asset($imagePath) }}" class="product-img" alt="{{ $product->name }}">
+                                @else
+                                    <img src="{{ asset('images/default-product.png') }}" class="product-img" alt="No Image">
+                                @endif
+                                <h5 class="mt-3">{{ $product->name }}</h5>
+                                <p class="text-center mt-2">{{ $product->description }}</p>
+                                <p class="text-center mt-2">Stock: {{ $product->stock }}</p>
+                                <p class="text-center">₱ {{ number_format($product->price, 2) }}</p>
+                                @if(isset($product->total_ordered))
+                                    <p class="text-center text-success">
+                                        <i class="fas fa-shopping-cart"></i> {{ $product->total_ordered }} units sold
+                                    </p>
+                                @endif
+                            </a>
                             @if ($product->stock == 0)
                                 <button class="btn btn-secondary" disabled>Sold Out</button>
                             @else
-                                <button class="btn btn-primary">View Details</button>
+                                <a href="{{ route('product.show', $product->product_id) }}" class="btn btn-primary">View Details</a>
                             @endif
                         </div>
                     </div>
