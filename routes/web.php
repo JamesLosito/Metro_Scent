@@ -46,29 +46,16 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 
-Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+// Checkout Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+    Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
+    Route::post('/process-checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.processCheckout');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 });
 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
-
-Route::post('/checkout', function (Request $request) {
-    $selectedIds = $request->input('selected_items', []);
-    $selectedItems = CartItem::with('product')->whereIn('id', $selectedIds)->get();
-
-    if ($selectedItems->isEmpty()) {
-        return redirect('/cart')->with('error', 'No items selected.');
-    }
-
-    return view('checkout', compact('selectedItems'));
-});
-
-Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
-Route::post('/process-checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.processCheckout');
-Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
 Route::prefix('perfumes')->group(function() {
     Route::get('captivating', [PerfumesController::class, 'captivating']);

@@ -199,6 +199,52 @@
             font-weight: bold;
             margin: 10px 0;
         }
+
+        /* Add to existing styles */
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .quantity-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-controls button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .quantity-controls input {
+            width: 60px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #ddd;
+            margin: 0 10px;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        .quantity-controls input:focus {
+            outline: none;
+            border-color: #5d1d48;
+        }
+
+        .quantity-label {
+            margin-right: 15px;
+            color: #666;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -233,11 +279,18 @@
                         <input type="hidden" name="product_id" value="{{ $product->product_id }}">
                         <input type="hidden" name="product_name" value="{{ $product->name }}">
                         <input type="hidden" name="product_stock" value="{{ $product->stock }}">
-                        <button type="submit" class="btn btn-primary btn-lg mb-3" {{ $isOutOfStock ? 'disabled' : '' }}>
+                        
+                        <div class="quantity-controls">
+                            <span class="quantity-label">Quantity:</span>
+                            <button type="button" class="decrement" {{ $isOutOfStock ? 'disabled' : '' }}>-</button>
+                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
+                            <button type="button" class="increment" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg mb-3 w-100" {{ $isOutOfStock ? 'disabled' : '' }}>
                             {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
                         </button>
                     </form>
-                    <a href="{{ url('/checkout') }}" class="btn btn-success btn-lg">Checkout Now</a>
                 </div>
             @else
                 <a href="{{ url('/login') }}" class="btn btn-primary btn-lg">Login to Purchase</a>
@@ -277,21 +330,53 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(errorNotification);
     }
     
-    // Attach handlers to all add-to-cart forms
+    // Quantity controls
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    const decrementBtn = document.querySelector('.decrement');
+    const incrementBtn = document.querySelector('.increment');
+    const maxStock = parseInt(quantityInput.getAttribute('max'));
+
+    function updateQuantity(value) {
+        value = Math.max(1, Math.min(value, maxStock));
+        quantityInput.value = value;
+    }
+
+    decrementBtn.addEventListener('click', function() {
+        updateQuantity(parseInt(quantityInput.value) - 1);
+    });
+
+    incrementBtn.addEventListener('click', function() {
+        updateQuantity(parseInt(quantityInput.value) + 1);
+    });
+
+    quantityInput.addEventListener('change', function() {
+        updateQuantity(parseInt(this.value));
+    });
+
+    // Update form submission
     const forms = document.querySelectorAll('form[action*="/cart/add"]');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const productName = this.querySelector('input[name="product_name"]').value;
             const stock = parseInt(this.querySelector('input[name="product_stock"]').value);
+            const quantity = parseInt(this.querySelector('input[name="quantity"]').value);
+
             if (stock <= 0) {
                 showErrorNotification('This product is out of stock.');
                 return false;
             }
+
+            if (quantity > stock) {
+                showErrorNotification('Quantity cannot exceed available stock.');
+                return false;
+            }
+
             // Show success notification
             const message = successNotification.querySelector('.notification-message');
-            message.textContent = productName + ' has been added to your cart.';
+            message.textContent = `${quantity} ${productName}${quantity > 1 ? 's' : ''} added to your cart.`;
             successNotification.style.display = 'block';
+
             // Submit via AJAX
             const formData = new FormData(this);
             fetch(this.action, {
@@ -312,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 const message = successNotification.querySelector('.notification-message');
-                message.textContent = data.message || (productName + ' has been added to your cart.');
+                message.textContent = data.message || `${quantity} ${productName}${quantity > 1 ? 's' : ''} added to your cart.`;
                 successNotification.style.display = 'block';
                 setTimeout(() => {
                     successNotification.style.display = 'none';
