@@ -1,6 +1,8 @@
-@extends('components.navbar')
+@extends('layouts.app') <!-- Assuming you have a layout -->
 
 @section('content')
+@include('components.navbar')
+
 <div class="container">
   <h1>Admin Dashboard</h1>
 

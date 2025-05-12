@@ -1,42 +1,167 @@
-@extends('components.navbar')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-@section('content')
-<div class="container">
-    <h2>Product Management</h2>
+    <!-- Bootstrap CSS -->
+    <link 
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+      rel="stylesheet"
+    >
+</head>
+<body>
 
-    <!-- Add Product Form -->
-    <form method="POST" action="{{ route('admin.products.store') }}">
-        @csrf
-        <input type="text" name="name" placeholder="Product Name" required>
-        <input type="text" name="price" placeholder="Price" required>
-        <textarea name="description" placeholder="Description"></textarea>
-        <button type="submit">Add Product</button>
-    </form>
+    @include('components.navbar')
 
-    <!-- Product List -->
-    <table class="table mt-4">
-        <thead>
-            <tr><th>Name</th><th>Price</th><th>Description</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-            @foreach ($products as $product)
-                <tr>
-                    <form method="POST" action="{{ route('admin.products.update', $product->id) }}">
-                        @csrf @method('PUT')
-                        <td><input type="text" name="name" value="{{ $product->name }}"></td>
-                        <td><input type="text" name="price" value="{{ $product->price }}"></td>
-                        <td><input type="text" name="description" value="{{ $product->description }}"></td>
-                        <td>
-                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.products.delete', $product->id) }}" style="display:inline;">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endsection
+    <div class="container mt-4">
+        <h1 class="mb-4">Product Management</h1>
+
+        {{-- Success message --}}
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        {{-- Add New Product Form --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Add New Product</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('admin.products.store') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name</label>
+                        <input 
+                          type="text" 
+                          name="name" 
+                          id="name" 
+                          class="form-control" 
+                          placeholder="Enter product name" 
+                          required
+                        >
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price</label>
+                        <input 
+                          type="number" 
+                          name="price" 
+                          id="price" 
+                          class="form-control" 
+                          placeholder="0.00" 
+                          step="0.01" 
+                          required
+                        >
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea 
+                          name="description" 
+                          id="description" 
+                          class="form-control" 
+                          rows="3" 
+                          placeholder="Enter a short description"
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Existing Products Table --}}
+        <div class="card">
+            <div class="card-header">
+                <h5>Existing Products</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Description</th>
+                            <th style="width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($products as $product)
+                            @if ($product->id)
+                            <tr>
+                                <form 
+                                  method="POST" 
+                                  action="{{ route('admin.products.update', ['id' => $product->id]) }}"
+                                  class="d-flex"
+                                >
+                                    @csrf
+                                    @method('PUT')
+                                    <td style="width: 25%">
+                                        <input 
+                                          type="text" 
+                                          name="name" 
+                                          class="form-control" 
+                                          value="{{ $product->name }}"
+                                        >
+                                    </td>
+                                    <td style="width: 15%">
+                                        <input 
+                                          type="number" 
+                                          name="price" 
+                                          class="form-control" 
+                                          value="{{ $product->price }}" 
+                                          step="0.01"
+                                        >
+                                    </td>
+                                    <td style="width: 40%">
+                                        <textarea 
+                                          name="description" 
+                                          class="form-control" 
+                                          rows="2"
+                                        >{{ $product->description }}</textarea>
+                                    </td>
+                                    <td class="d-flex justify-content-between align-items-center">
+                                        <button 
+                                          type="submit" 
+                                          class="btn btn-sm btn-success me-2"
+                                        >
+                                          Update
+                                        </button>
+                                </form>
+                                <form 
+                                  method="POST" 
+                                  action="{{ route('admin.products.delete', ['id' => $product->id]) }}"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <button 
+                                      type="submit" 
+                                      class="btn btn-sm btn-danger"
+                                      onclick="return confirm('Delete this product?')"
+                                    >
+                                      Delete
+                                    </button>
+                                </form>
+                                    </td>
+                            </tr>
+                            @endif
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-3">
+                                    No products found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @include('components.footer')
+
+    <!-- Bootstrap Bundle JS (optional, for navbars/modals) -->
+    <script 
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    ></script>
+</body>
+</html>

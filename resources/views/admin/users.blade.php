@@ -1,42 +1,54 @@
-@extends('components.navbar')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
 
-@section('content')
-<div class="container">
-    <h2>Product Management</h2>
+    @include('components.navbar') <!-- This includes your navbar -->
 
-    <!-- Add Product Form -->
-    <form method="POST" action="{{ route('admin.products.store') }}">
-        @csrf
-        <input type="text" name="name" placeholder="Product Name" required>
-        <input type="text" name="price" placeholder="Price" required>
-        <textarea name="description" placeholder="Description"></textarea>
-        <button type="submit">Add Product</button>
-    </form>
+    <div class="container mt-4">
+        <h2>User Management</h2>
 
-    <!-- Product List -->
-    <table class="table mt-4">
-        <thead>
-            <tr><th>Name</th><th>Price</th><th>Description</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-            @foreach ($products as $product)
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        <table class="table table-bordered table-striped mt-3">
+            <thead class="table-dark">
                 <tr>
-                    <form method="POST" action="{{ route('admin.products.update', $product->id) }}">
-                        @csrf @method('PUT')
-                        <td><input type="text" name="name" value="{{ $product->name }}"></td>
-                        <td><input type="text" name="price" value="{{ $product->price }}"></td>
-                        <td><input type="text" name="description" value="{{ $product->description }}"></td>
-                        <td>
-                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.products.delete', $product->id) }}" style="display:inline;">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                    </td>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endsection
+            </thead>
+            <tbody>
+                @forelse ($users as $user)
+                    <tr>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if(auth()->id() !== $user->id)
+                                <form method="POST" action="{{ route('admin.users.delete', $user->id) }}" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            @else
+                                <span class="text-muted">Current User</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" class="text-center">No users found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
