@@ -185,4 +185,16 @@ public function success()
     return view('checkout.success');
 }
 
+public function store(Request $request)
+{
+    $request->validate([
+        'selected_items' => 'required|array|min:1',
+        'selected_items.*' => 'integer|exists:cart_items,id',
+    ]);
+    // Redirect to GET /checkout with selected_items as input
+    return redirect()->route('checkout', [
+        'selected_items' => $request->input('selected_items')
+    ]);
+}
+
 }

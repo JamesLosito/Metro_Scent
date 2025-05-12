@@ -49,6 +49,7 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 // Checkout Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
     Route::post('/process-checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.processCheckout');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
