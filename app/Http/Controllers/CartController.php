@@ -32,6 +32,9 @@ class CartController extends Controller
         $userId = Auth::id();
         
         if (!$userId) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'You must be logged in to add items to your cart.'], 401);
+            }
             return redirect()->route('login')->with('error', 'You must be logged in to add items to your cart.');
         }
 
@@ -41,6 +44,15 @@ class CartController extends Controller
         ]);
 
         $productId = $validated['product_id'];
+        $product = Product::find($productId);
+
+        // Check if product is in stock
+        if ($product->stock <= 0) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'This product is out of stock.'], 400);
+            }
+            return back()->with('error', 'This product is out of stock.');
+        }
 
         // Check if the product is already in the user's cart
         $existingItem = CartItem::where('user_id', $userId)
@@ -50,6 +62,9 @@ class CartController extends Controller
         if ($existingItem) {
             // If the item already exists, increase the quantity
             $existingItem->increment('quantity', 1);
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Item quantity updated in your cart!']);
+            }
             return back()->with('message', 'Item quantity updated in your cart!');
         }
 
@@ -57,9 +72,12 @@ class CartController extends Controller
         CartItem::create([
             'user_id' => $userId,
             'product_id' => $productId,
-            'quantity' => 1, // You can adjust this depending on your logic
+            'quantity' => 1,
         ]);
 
+        if ($request->ajax()) {
+            return response()->json(['message' => 'Item added to your cart!']);
+        }
         return back()->with('message', 'Item added to your cart!');
     }
 

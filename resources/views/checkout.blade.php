@@ -49,20 +49,25 @@
                             $grandTotal += $itemTotal;
                             $folder = strtoupper($item->product->type);
                             $imagePath = 'images/' . $folder . '/' . $item->product->image;
+                            $isOutOfStock = $item->product->stock <= 0;
                         @endphp
                         <li class="list-group-item d-flex align-items-center">
                             <div class="me-3">
                                 <img src="{{ asset($imagePath) }}" alt="{{ $item->product->name }}" class="product-img">
                             </div>
                             <div class="flex-grow-1">
-                                <strong>{{ $item->product->name }}</strong><br>
+                                <strong>{{ $item->product->name }}</strong>
+                                @if($isOutOfStock)
+                                    <span class="text-danger">(Out of Stock)</span>
+                                @endif
+                                <br>
                                 ₱{{ number_format($item->product->price, 2) }} x 
                                 <input 
                                     type="number" 
                                     name="item_quantity[{{ $item->id }}]" 
                                     value="{{ $item->quantity }}" 
                                     min="1" 
-                                    step="1"
+                                    max="{{ $item->product->stock }}"
                                     class="form-control form-control-sm w-auto d-inline-block" 
                                     style="max-width: 70px;" 
                                     readonly
@@ -75,29 +80,44 @@
                     @endforeach
                 </ul>
 
-                @php $shippingFee = 50; $grandTotalWithShipping = $grandTotal + $shippingFee; @endphp
+                @php 
+                    $shippingFee = 50; 
+                    $grandTotalWithShipping = $grandTotal + $shippingFee;
+                    $hasOutOfStock = collect($selectedItems)->contains(function($item) {
+                        return $item->product->stock <= 0;
+                    });
+                @endphp
                 <div class="mb-4">
                     <h4>Total Amount (with shipping): ₱<span id="grandTotal">{{ number_format($grandTotalWithShipping, 2) }}</span></h4>
+                    @if($hasOutOfStock)
+                        <div class="alert alert-danger">
+                            Some items in your cart are out of stock. Please remove them before proceeding with checkout.
+                        </div>
+                    @endif
                 </div>
 
-                <h5>Billing Information</h5>
-                <div class="mb-3">
-                    <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
-                </div>
-                <div class="mb-3">
-                    <input type="email" name="email" class="form-control" placeholder="Email Address" required>
-                </div>
-                <div class="mb-3">
-                    <input type="text" name="address" class="form-control" placeholder="Shipping Address" required>
-                </div>
+                @if(!$hasOutOfStock)
+                    <h5>Billing Information</h5>
+                    <div class="mb-3">
+                        <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="address" class="form-control" placeholder="Shipping Address" required>
+                    </div>
 
-                <div class="mb-3">
-                    <label for="card-element" class="form-label">Credit or Debit Card</label>
-                    <div id="card-element" class="form-control p-3"></div>
-                    <div id="card-errors" class="text-danger mt-2"></div>
-                </div>
+                    <div class="mb-3">
+                        <label for="card-element" class="form-label">Credit or Debit Card</label>
+                        <div id="card-element" class="form-control p-3"></div>
+                        <div id="card-errors" class="text-danger mt-2"></div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary" id="submit-button">Confirm Order & Pay</button>
+                    <button type="submit" class="btn btn-primary" id="submit-button">Confirm Order & Pay</button>
+                @else
+                    <a href="{{ route('cart.index') }}" class="btn btn-primary">Return to Cart</a>
+                @endif
             </form>
         @else
             <div class="alert alert-info">No items selected for checkout.</div>

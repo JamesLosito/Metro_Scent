@@ -1,6 +1,7 @@
 @php
     $folder = strtoupper($product->type);
     $imagePath = 'images/' . $folder . '/' . $product->image;
+    $isOutOfStock = $product->stock <= 0;
 @endphp
 
 <div class="col-md-4">
@@ -9,11 +10,18 @@
         <h5 class="mt-3">{{ $product->name }}</h5>
         <h6 class="text-muted">{{ $product->price }} PHP</h6>
         <p>{{ $product->description }}</p>
+        <div class="stock-status {{ $isOutOfStock ? 'text-danger' : 'text-success' }}">
+            {{ $isOutOfStock ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
+        </div>
         @auth
-        <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form" onsubmit="return addToCartWithNotification(this, '{{ $product->name }}')">
+        <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form">
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-            <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+            <input type="hidden" name="product_name" value="{{ $product->name }}">
+            <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+            <button type="submit" class="btn btn-primary mt-3" {{ $isOutOfStock ? 'disabled' : '' }}>
+                {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
+            </button>
         </form>
         @else
         <a href="{{ url('/register') }}" class="btn btn-primary mt-3">Add to Cart</a>
@@ -25,6 +33,14 @@
 <div id="success-notification" class="notification-popup">
     <div class="notification-content">
         <span class="checkmark">✓</span>
+        <span class="notification-message"></span>
+    </div>
+</div>
+
+<!-- Error Notification Popup -->
+<div id="error-notification" class="notification-popup error">
+    <div class="notification-content">
+        <span class="error-mark">!</span>
         <span class="notification-message"></span>
     </div>
 </div>
@@ -53,57 +69,62 @@
     align-items: center;
 }
 
+.notification-popup.error .notification-content {
+    background-color: #dc3545;
+}
+
 .checkmark {
     margin-right: 10px;
     font-size: 18px;
 }
 
+.error-mark {
+    margin-right: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
 .notification-message {
     font-size: 16px;
+}
+
+.stock-status {
+    font-weight: bold;
+    margin: 10px 0;
 }
 </style>
 
 <!-- JavaScript for handling the notification -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Move the notification element to the body to ensure it's available globally
-    const notificationElement = document.getElementById('success-notification');
-    if (notificationElement && notificationElement.parentNode) {
-        document.body.appendChild(notificationElement);
+    // Move the notification elements to the body to ensure they're available globally
+    const successNotification = document.getElementById('success-notification');
+    const errorNotification = document.getElementById('error-notification');
+    if (successNotification && successNotification.parentNode) {
+        document.body.appendChild(successNotification);
+    }
+    if (errorNotification && errorNotification.parentNode) {
+        document.body.appendChild(errorNotification);
     }
     
-    // Add a global function to handle the cart addition
-    window.addToCartWithNotification = function(form, productName) {
-        // Prevent default form behavior
-        event.preventDefault();
-        
-        // Get the product name if not provided
-        if (!productName) {
-            const productCard = form.closest('.product-card');
-            if (productCard) {
-                productName = productCard.querySelector('h5').textContent.trim();
-            } else {
-                productName = "Product"; // Fallback
+    // Attach handlers to all add-to-cart forms
+    const forms = document.querySelectorAll('form[action*="/cart/add"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const productName = this.querySelector('input[name="product_name"]').value;
+            const stock = parseInt(this.querySelector('input[name="product_stock"]').value);
+            if (stock <= 0) {
+                showErrorNotification('This product is out of stock.');
+                return false;
             }
-        }
-        
-        // Show notification
-        const notification = document.getElementById('success-notification');
-        const message = notification.querySelector('.notification-message');
-        message.textContent = '"' + productName + '" has been added to your cart.';
-        notification.style.display = 'block';
-        
-        // Store the form for later submission
-        const formToSubmit = form;
-        
-        // Hide notification after 3 seconds and submit the form
-        setTimeout(() => {
-            notification.style.display = 'none';
-
-            // Submit via AJAX to prevent page reload
-            const formData = new FormData(formToSubmit);
-
-            fetch(formToSubmit.action, {
+            // Show success notification
+            const message = successNotification.querySelector('.notification-message');
+            message.textContent = productName + ' has been added to your cart.';
+            successNotification.style.display = 'block';
+            // Submit via AJAX
+            const formData = new FormData(this);
+            fetch(this.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -112,26 +133,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok.');
-                return response.json(); // Or response.text() depending on your backend
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to add item to cart');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const message = successNotification.querySelector('.notification-message');
+                message.textContent = data.message || (productName + ' has been added to your cart.');
+                successNotification.style.display = 'block';
+                setTimeout(() => {
+                    successNotification.style.display = 'none';
+                }, 3000);
             })
             .catch(error => {
                 console.error('Error adding to cart:', error);
+                showErrorNotification(error.message || 'Failed to add item to cart. Please try again.');
+                successNotification.style.display = 'none';
             });
-
-        }, 3000);
-
-        // Prevent immediate form submission
-        return false;
-    };
-    
-    // Attach handlers to all add-to-cart forms
-    const forms = document.querySelectorAll('form[action*="/cart/add"]');
-    forms.forEach(form => {
-        form.classList.add('add-to-cart-form'); // Ensure class is present
-        form.onsubmit = function(e) {
-            return addToCartWithNotification(this);
-        };
+        });
     });
+
+    function showErrorNotification(message) {
+        const notification = document.getElementById('error-notification');
+        const messageElement = notification.querySelector('.notification-message');
+        messageElement.textContent = message;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
 });
 </script>

@@ -119,6 +119,45 @@
         .product-card.out-of-stock img {
             opacity: 0.5;
         }
+        .notification-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            width: 100%;
+            max-width: 600px;
+        }
+        .notification-content {
+            background-color: #5d1d48;
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        .notification-popup.error .notification-content {
+            background-color: #dc3545;
+        }
+        .checkmark {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .error-mark {
+            margin-right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .notification-message {
+            font-size: 16px;
+        }
+        .stock-status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -152,20 +191,34 @@
                 @endphp
                 <div class="col-md-4">
                     <div class="product-card position-relative {{ $product->stock <= 0 ? 'out-of-stock' : '' }}">
-    <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
-        @if($product->stock <= 0)
-            <span class="out-of-stock-label">Out of Stock</span>
-        @endif
+                        <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
+                            @if($product->stock <= 0)
+                                <span class="out-of-stock-label">Out of Stock</span>
+                            @endif
 
-        <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-        <h5 class="mt-3">{{ $product->name }}</h5>
-        <h6 class="text-muted">{{ $product->price }} PHP</h6>
-        <h6 class="text-muted">{{ $product->stock }} left</h6>
-        <p>{{ Str::limit($product->description, 100) }}</p>
-    </a>
+                            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+                            <h5 class="mt-3">{{ $product->name }}</h5>
+                            <h6 class="text-muted">{{ $product->price }} PHP</h6>
+                            <div class="stock-status {{ $product->stock <= 0 ? 'text-danger' : 'text-success' }}">
+                                {{ $product->stock <= 0 ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
+                            </div>
+                            <p>{{ Str::limit($product->description, 100) }}</p>
+                        </a>
 
-    <a href="{{ url('/view_product/' . $product->product_id) }}" class="btn btn-primary mt-2">View Details</a>
-</div>
+                        @auth
+                            <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+                                <input type="hidden" name="product_name" value="{{ $product->name }}">
+                                <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+                                <button type="submit" class="btn btn-primary mt-2" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                    {{ $product->stock <= 0 ? 'Out of Stock' : 'Add to Cart' }}
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ url('/register') }}" class="btn btn-primary mt-2">Add to Cart</a>
+                        @endauth
+                    </div>
                 </div>
             @endforeach
         </div>
@@ -173,6 +226,93 @@
 
     @include('components.footer')
 
+    <!-- Success Notification Popup -->
+    <div id="success-notification" class="notification-popup">
+        <div class="notification-content">
+            <span class="checkmark">✓</span>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <!-- Error Notification Popup -->
+    <div id="error-notification" class="notification-popup error">
+        <div class="notification-content">
+            <span class="error-mark">!</span>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const successNotification = document.getElementById('success-notification');
+        const errorNotification = document.getElementById('error-notification');
+        
+        // Attach handlers to all add-to-cart forms
+        const forms = document.querySelectorAll('form[action*="/cart/add"]');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const productName = this.querySelector('input[name="product_name"]').value;
+                const stock = parseInt(this.querySelector('input[name="product_stock"]').value);
+                
+                if (stock <= 0) {
+                    showErrorNotification('This product is out of stock.');
+                    return false;
+                }
+                
+                // Show success notification
+                const message = successNotification.querySelector('.notification-message');
+                message.textContent = productName + ' has been added to your cart.';
+                successNotification.style.display = 'block';
+                
+                // Submit via AJAX
+                const formData = new FormData(this);
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Failed to add item to cart');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const message = successNotification.querySelector('.notification-message');
+                    message.textContent = data.message || (productName + ' has been added to your cart.');
+                    successNotification.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        successNotification.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    showErrorNotification(error.message || 'Failed to add item to cart. Please try again.');
+                    successNotification.style.display = 'none';
+                });
+            });
+        });
+        
+        function showErrorNotification(message) {
+            const messageElement = errorNotification.querySelector('.notification-message');
+            messageElement.textContent = message;
+            errorNotification.style.display = 'block';
+            
+            setTimeout(() => {
+                errorNotification.style.display = 'none';
+            }, 3000);
+        }
+    });
+    </script>
 </body>
 </html>

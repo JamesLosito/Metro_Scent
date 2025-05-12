@@ -106,6 +106,37 @@
             padding: 5px;
             margin: 0 5px;
         }
+        .notification-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .notification-popup.error .notification-content {
+            background-color: #dc3545;
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .error-mark {
+            margin-right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notification-message {
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -134,6 +165,7 @@
                                 $cartTotal += $itemTotal;
                                 $folder = strtoupper($item->product->type);
                                 $imagePath = 'images/' . $folder . '/' . $item->product->image;
+                                $isOutOfStock = $item->product->stock <= 0;
                             @endphp
                             <li class="list-group-item d-flex align-items-center">
                                 <div class="me-3">
@@ -141,16 +173,19 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="form-check">
-                                        <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}">
+                                        <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>
                                         <label class="form-check-label" for="cartItem{{ $item->id }}">
                                             <strong>{{ $item->product->name }}</strong><br>
                                             ₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display">{{ $item->quantity }}</span>
+                                            @if($isOutOfStock)
+                                                <span class="text-danger">(Out of Stock)</span>
+                                            @endif
                                         </label>
                                     </div>
                                     <div class="quantity-controls">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary decrement" data-id="{{ $item->id }}">-</button>
-                                        <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}">+</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary decrement" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>-</button>
+                                        <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1" max="{{ $item->product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
                                     </div>
                                 </div>
                                 <span class="item-total" data-id="{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
@@ -195,12 +230,20 @@
             function updateTotal() {
                 let subtotal = 0;
                 let hasSelected = false;
+                let hasOutOfStock = false;
 
                 checkboxes.forEach(checkbox => {
                     if (checkbox.checked) {
                         const itemId = checkbox.value;
-                        subtotal += itemTotals[itemId] || 0;
-                        hasSelected = true;
+                        const itemElement = checkbox.closest('.list-group-item');
+                        const isOutOfStock = itemElement.querySelector('.text-danger') !== null;
+                        
+                        if (isOutOfStock) {
+                            hasOutOfStock = true;
+                        } else {
+                            subtotal += itemTotals[itemId] || 0;
+                            hasSelected = true;
+                        }
                     }
                 });
 
@@ -213,18 +256,59 @@
                 shippingFeeDisplay.textContent = hasSelected ? shippingFee.toFixed(2) : "0.00";
                 cartTotalDisplay.textContent = total.toFixed(2);
                 
-                // Enable/disable checkout button based on selection
-                checkoutButton.disabled = !hasSelected;
+                // Enable/disable checkout button based on selection and stock status
+                checkoutButton.disabled = !hasSelected || hasOutOfStock;
+                
+                if (hasOutOfStock) {
+                    showErrorNotification('Cannot checkout: Some selected items are out of stock.');
+                }
             }
 
             // Add form submission validation
             checkoutForm.addEventListener('submit', function(e) {
                 const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+                let hasOutOfStock = false;
+                
+                selectedItems.forEach(checkbox => {
+                    const itemElement = checkbox.closest('.list-group-item');
+                    if (itemElement.querySelector('.text-danger')) {
+                        hasOutOfStock = true;
+                    }
+                });
+
                 if (selectedItems.length === 0) {
                     e.preventDefault();
-                    alert('Please select at least one item to checkout.');
+                    showErrorNotification('Please select at least one item to checkout.');
+                } else if (hasOutOfStock) {
+                    e.preventDefault();
+                    showErrorNotification('Cannot checkout: Some selected items are out of stock.');
                 }
             });
+
+            function showErrorNotification(message) {
+                const notification = document.getElementById('error-notification');
+                if (!notification) {
+                    // Create notification element if it doesn't exist
+                    const newNotification = document.createElement('div');
+                    newNotification.id = 'error-notification';
+                    newNotification.className = 'notification-popup error';
+                    newNotification.innerHTML = `
+                        <div class="notification-content">
+                            <span class="error-mark">!</span>
+                            <span class="notification-message"></span>
+                        </div>
+                    `;
+                    document.body.appendChild(newNotification);
+                }
+                
+                const messageElement = document.querySelector('#error-notification .notification-message');
+                messageElement.textContent = message;
+                document.getElementById('error-notification').style.display = 'block';
+                
+                setTimeout(() => {
+                    document.getElementById('error-notification').style.display = 'none';
+                }, 3000);
+            }
 
             function ajaxUpdateQuantity(itemId, newQty) {
                 fetch("{{ route('cart.updateQuantity') }}", {

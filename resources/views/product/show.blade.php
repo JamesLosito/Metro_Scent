@@ -152,6 +152,53 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Notification Styles */
+        .notification-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .notification-content {
+            background-color: #5d1d48;
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-popup.error .notification-content {
+            background-color: #dc3545;
+        }
+
+        .checkmark {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .error-mark {
+            margin-right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notification-message {
+            font-size: 16px;
+        }
+
+        .stock-status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -163,6 +210,7 @@
             @php
                 $folder = strtoupper($product->type);
                 $imagePath = 'images/' . $folder . '/' . $product->image;
+                $isOutOfStock = $product->stock <= 0;
             @endphp
             <div class="product-image mb-4">
                 <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="img-fluid rounded shadow">
@@ -174,13 +222,20 @@
             <h2 class="product-name">{{ $product->name }}</h2>
             <h4 class="text-muted">{{ $product->price }} PHP</h4>
             <p class="product-description">{{ $product->description }}</p>
+            <div class="stock-status {{ $isOutOfStock ? 'text-danger' : 'text-success' }}">
+                {{ $isOutOfStock ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
+            </div>
 
             @auth
                 <div class="d-flex flex-column mt-4">
-                    <form method="POST" action="{{ url('/cart/add') }}">
+                    <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                        <button type="submit" class="btn btn-primary btn-lg mb-3">Add to Cart</button>
+                        <input type="hidden" name="product_name" value="{{ $product->name }}">
+                        <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+                        <button type="submit" class="btn btn-primary btn-lg mb-3" {{ $isOutOfStock ? 'disabled' : '' }}>
+                            {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
+                        </button>
                     </form>
                     <a href="{{ url('/checkout') }}" class="btn btn-success btn-lg">Checkout Now</a>
                 </div>
@@ -190,8 +245,98 @@
         </div>
     </div>
 </div>
+
+<!-- Success Notification Popup -->
+<div id="success-notification" class="notification-popup">
+    <div class="notification-content">
+        <span class="checkmark">✓</span>
+        <span class="notification-message"></span>
+    </div>
+</div>
+
+<!-- Error Notification Popup -->
+<div id="error-notification" class="notification-popup error">
+    <div class="notification-content">
+        <span class="error-mark">!</span>
+        <span class="notification-message"></span>
+    </div>
+</div>
+
 @include('components.footer')
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Move the notification elements to the body to ensure they're available globally
+    const successNotification = document.getElementById('success-notification');
+    const errorNotification = document.getElementById('error-notification');
+    if (successNotification && successNotification.parentNode) {
+        document.body.appendChild(successNotification);
+    }
+    if (errorNotification && errorNotification.parentNode) {
+        document.body.appendChild(errorNotification);
+    }
+    
+    // Attach handlers to all add-to-cart forms
+    const forms = document.querySelectorAll('form[action*="/cart/add"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const productName = this.querySelector('input[name="product_name"]').value;
+            const stock = parseInt(this.querySelector('input[name="product_stock"]').value);
+            if (stock <= 0) {
+                showErrorNotification('This product is out of stock.');
+                return false;
+            }
+            // Show success notification
+            const message = successNotification.querySelector('.notification-message');
+            message.textContent = productName + ' has been added to your cart.';
+            successNotification.style.display = 'block';
+            // Submit via AJAX
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to add item to cart');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const message = successNotification.querySelector('.notification-message');
+                message.textContent = data.message || (productName + ' has been added to your cart.');
+                successNotification.style.display = 'block';
+                setTimeout(() => {
+                    successNotification.style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showErrorNotification(error.message || 'Failed to add item to cart. Please try again.');
+                successNotification.style.display = 'none';
+            });
+        });
+    });
+
+    function showErrorNotification(message) {
+        const notification = document.getElementById('error-notification');
+        const messageElement = notification.querySelector('.notification-message');
+        messageElement.textContent = message;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+});
+</script>
 </body>
 </html>
