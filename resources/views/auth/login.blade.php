@@ -3,13 +3,18 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    <!-- Login Form -->
     <form method="POST" action="{{ route('login') }}">
-        @csrf
+        @csrf <!-- Ensure CSRF token is present -->
 
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full"
+                          type="email"
+                          name="email"
+                          :value="old('email')"
+                          required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
@@ -33,7 +38,7 @@
             </label>
         </div>
 
-        <!-- Login, Forgot Password, and Cancel -->
+        <!-- Actions -->
         <div class="flex items-center justify-between mt-4">
             @if (Route::has('password.request'))
                 <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -42,21 +47,20 @@
                 </a>
             @endif
 
-           <div class="flex gap-4">
-            <x-primary-button style="background-color: #5d1d48; color: white;">
-                {{ __('Log in') }}
-            </x-primary-button>
+            <div class="flex gap-4">
+                <x-primary-button style="background-color: #5d1d48; color: white;">
+                    {{ __('Log in') }}
+                </x-primary-button>
 
-            <a href="{{ url('/') }}"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-                {{ __('Cancel') }}
-            </a>
+                <a href="{{ url('/') }}"
+                   class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                    {{ __('Cancel') }}
+                </a>
+            </div>
         </div>
-        </div>
-
     </form>
 
-    <!-- Sign Up Link -->
+    <!-- Register Prompt -->
     <div class="text-center mt-6">
         <p class="text-sm text-gray-600">
             {{ __("Don't have an account?") }}

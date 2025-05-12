@@ -1,22 +1,33 @@
-@extends('layouts.app')
+@extends('components.navbar')
 
 @section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Admin Dashboard</h4>
-                </div>
-                <div class="card-body">
-                    <p class="lead">Welcome, Admin! Use the links below to manage the site.</p>
-                    <ul class="list-group">
-                        <li class="list-group-item"><a href="{{ route('admin.bestsellers.index') }}">Manage Bestsellers</a></li>
-                        <!-- Add more admin links here as needed -->
-                    </ul>
-                </div>
-            </div>
-        </div>
+<div class="container">
+  <h1>Admin Dashboard</h1>
+
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Total Users</h5>
+        <p class="display-4">{{ $usersCount }}</p>
+        <a href="{{ route('admin.users') }}">Manage Users</a>
+      </div>
     </div>
+
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Total Products</h5>
+        <p class="display-4">{{ $productsCount }}</p>
+        <a href="{{ route('admin.products') }}">Manage Products</a>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Pending Orders</h5>
+        <p class="display-4">{{ $ordersPending }}</p>
+        <a href="{{ route('admin.orders') }}">Manage Orders</a>
+      </div>
+    </div>
+  </div>
 </div>
-@endsection 
+@endsection

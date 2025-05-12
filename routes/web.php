@@ -65,19 +65,6 @@ Route::get('/redirect-to-payment', [PaymentController::class, 'redirectToStripe'
 Route::get('/payment-success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 
-// Admin Routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Admin Dashboard
-    Route::get('/dashboard', function () {
-        $totalProducts = \App\Models\Product::count();
-        $totalOrders = \App\Models\Order::count();
-        $totalUsers = \App\Models\User::count();
-        return view('admin.dashboard', compact('totalProducts', 'totalOrders', 'totalUsers'));
-    })->name('dashboard');
-    // Bestseller Management
-    Route::get('/bestsellers', [\App\Http\Controllers\Admin\BestsellerController::class, 'index'])->name('bestsellers.index');
-    Route::post('/bestsellers/{product}/toggle', [\App\Http\Controllers\Admin\BestsellerController::class, 'toggleBestSeller'])->name('bestsellers.toggle');
-});
 
 Route::post('/contact-submit', [ContactController::class, 'submit'])->name('contact.submit');
 
@@ -93,3 +80,28 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });
+
+use App\Http\Controllers\AdminController;
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    // Product Routes
+    Route::get('/admin', [AdminController::class,'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/products', [AdminController::class, 'showProducts'])->name('admin.products');
+    Route::post('/admin/products', [AdminController::class, 'storeProduct'])->name('admin.products.store');
+    Route::put('/admin/products/{id}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
+    Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct'])->name('admin.products.delete');
+
+    // User Routes
+    Route::get('/admin/users', [AdminController::class, 'showUsers'])->name('admin.users');
+    Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+
+    // Orders
+    Route::get('/admin/orders', [AdminController::class, 'showOrders'])->name('admin.orders');
+    Route::put('/admin/orders/{id}/process', [AdminController::class, 'processOrder'])->name('admin.orders.process');
+});
+
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
+Route::get('login', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
+Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('guest');
+Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
