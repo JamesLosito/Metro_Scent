@@ -1,11 +1,8 @@
 <x-guest-layout>
-    <div class="min-h-screen flex items-center justify-center bg-gray-100">
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
             <h2 class="text-2xl font-bold text-center mb-6">Create an Account</h2>
 
             <form method="POST" action="{{ route('register') }}">
                 @csrf
-
                 <!-- Name -->
                 <div class="mb-4">
                     <x-input-label for="name" :value="__('Name')" />
@@ -35,15 +32,17 @@
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <a class="text-sm text-blue-600 hover:underline" href="{{ route('login') }}">
+                    <p class="text-sm text-gray-600">
                         {{ __('Already registered?') }}
-                    </a>
+                        <a href="{{ route('login') }}" class="text-indigo-600 hover:underline font-semibold">
+                            {{ __('Login') }}
+                        </a>
+                    </p>
 
                     <x-primary-button class="ml-4">
                         {{ __('Register') }}
                     </x-primary-button>
                 </div>
             </form>
-        </div>
-    </div>
+
 </x-guest-layout>

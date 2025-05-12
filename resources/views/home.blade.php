@@ -156,19 +156,6 @@
 </head>
 <body>
     @include('components.navbar')
-
-    <!-- Auth Notice -->
-    <div class="container text-end mt-3">
-        @auth
-            <p class="text-muted">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</p>
-        @else
-            <div class="text-end">
-                <a href="{{ url('/login') }}" class="btn tag-btn m-1">Login</a>
-                <a href="{{ url('/register') }}" class="btn tag-btn m-1">Signup</a>
-            </div>
-        @endauth
-    </div>
-
     <!-- Hero Section -->
     <div class="hero-section">
         <img src="{{ asset('images/perfume.jpg') }}" class="hero-img" alt="Metro Essence Banner">
