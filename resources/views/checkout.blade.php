@@ -37,7 +37,7 @@
         @endif
 
         @if (isset($selectedItems) && count($selectedItems) > 0)
-            <form method="POST" action="{{ route('checkout.processCheckout') }}" id="payment-form">
+            <form method="POST" action="{{ route('checkout.store') }}" id="payment-form">
                 @csrf
 
                 <ul class="list-group mb-4">
@@ -109,12 +109,56 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="card-element" class="form-label">Credit or Debit Card</label>
-                        <div id="card-element" class="form-control p-3"></div>
-                        <div id="card-errors" class="text-danger mt-2"></div>
+                        <label class="form-label">Payment Method</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="payment_stripe" value="stripe" checked>
+                            <label class="form-check-label" for="payment_stripe">
+                                Credit/Debit Card (Stripe)
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="payment_cod" value="cod">
+                            <label class="form-check-label" for="payment_cod">
+                                Cash on Delivery
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="payment_gcash" value="gcash">
+                            <label class="form-check-label" for="payment_gcash">
+                                GCash
+                            </label>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="submit-button">Confirm Order & Pay</button>
+                    <!-- Stripe Payment Form -->
+                    <div id="stripe-payment-section">
+                        <div class="mb-3">
+                            <label for="card-element" class="form-label">Credit or Debit Card</label>
+                            <div id="card-element" class="form-control p-3"></div>
+                            <div id="card-errors" class="text-danger mt-2"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="stripe-submit">Pay with Card</button>
+                    </div>
+
+                    <!-- GCash Payment Form -->
+                    <div id="gcash-payment-section" style="display: none;">
+                        <div class="alert alert-info">
+                            <p>Please send your payment to our GCash account:</p>
+                            <p><strong>Account Number:</strong> 09123456789</p>
+                            <p><strong>Account Name:</strong> Metro Essence</p>
+                            <p>Please keep your payment receipt for verification.</p>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="gcash-submit">Confirm GCash Payment</button>
+                    </div>
+
+                    <!-- COD Payment Form -->
+                    <div id="cod-payment-section" style="display: none;">
+                        <div class="alert alert-info">
+                            <p>You will pay the total amount upon delivery.</p>
+                            <p>Please have the exact amount ready for the delivery person.</p>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="cod-submit">Confirm Cash on Delivery</button>
+                    </div>
                 @else
                     <a href="{{ route('cart.index') }}" class="btn btn-primary">Return to Cart</a>
                 @endif
@@ -127,65 +171,28 @@
     <!-- Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        // Add error handling for Stripe initialization
-        try {
-            const stripeKey = "{{ config('services.stripe.key') }}";
-            if (!stripeKey) {
-                throw new Error('Stripe key is not configured');
-            }
-            
-            const stripe = Stripe(stripeKey);
-            const elements = stripe.elements({
-                appearance: {
-                    theme: 'stripe',
-                }
-            });
+        // Initialize Stripe
+        const stripe = Stripe("{{ config('services.stripe.key') }}");
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#card-element');
 
-            // Create and mount the card element
-            const cardElement = elements.create('card', {
-                style: {
-                    base: {
-                        fontSize: '16px',
-                        color: '#32325d',
-                        fontFamily: '"Times New Roman", serif',
-                        '::placeholder': {
-                            color: '#aab7c4'
-                        }
-                    },
-                    invalid: {
-                        color: '#fa755a',
-                        iconColor: '#fa755a'
-                    }
-                }
-            });
+        // Handle Stripe payment
+        const form = document.getElementById('payment-form');
+        const stripeSubmit = document.getElementById('stripe-submit');
+        const gcashSubmit = document.getElementById('gcash-submit');
+        const codSubmit = document.getElementById('cod-submit');
+        const cardErrors = document.getElementById('card-errors');
 
-            // Mount the card element
-            const cardContainer = document.getElementById('card-element');
-            if (!cardContainer) {
-                throw new Error('Card element container not found');
-            }
-            cardElement.mount('#card-element');
+        // Handle form submission for all payment methods
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
-            // Handle real-time validation errors
-            cardElement.on('change', function(event) {
-                const displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                } else {
-                    displayError.textContent = '';
-                }
-            });
-
-            const form = document.getElementById('payment-form');
-            const cardErrors = document.getElementById('card-errors');
-            const submitButton = document.getElementById('submit-button');
-
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                submitButton.disabled = true;
-                cardErrors.textContent = '';
-
+            if (paymentMethod === 'stripe') {
+                stripeSubmit.disabled = true;
                 try {
+                    // Create payment intent
                     const response = await fetch('{{ route("checkout.createPaymentIntent") }}', {
                         method: 'POST',
                         headers: {
@@ -196,7 +203,7 @@
                             full_name: form.full_name.value,
                             email: form.email.value,
                             address: form.address.value,
-                            amount: {{ intval(($grandTotal + 50) * 100) }} // includes shipping
+                            amount: {{ intval(($grandTotal + 50) * 100) }}
                         })
                     });
 
@@ -206,6 +213,7 @@
                         throw new Error(data.error || 'Failed to initiate payment');
                     }
 
+                    // Confirm card payment
                     const result = await stripe.confirmCardPayment(data.client_secret, {
                         payment_method: {
                             card: cardElement,
@@ -223,23 +231,45 @@
                         throw new Error(result.error.message);
                     }
 
-                    if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                        const paymentInput = document.createElement('input');
-                        paymentInput.type = 'hidden';
-                        paymentInput.name = 'payment_intent_id';
-                        paymentInput.value = result.paymentIntent.id;
-                        form.appendChild(paymentInput);
-                        form.submit();
-                    }
+                    // Add payment intent ID to form
+                    const paymentInput = document.createElement('input');
+                    paymentInput.type = 'hidden';
+                    paymentInput.name = 'payment_intent_id';
+                    paymentInput.value = result.paymentIntent.id;
+                    form.appendChild(paymentInput);
                 } catch (error) {
                     cardErrors.textContent = error.message;
-                    submitButton.disabled = false;
+                    stripeSubmit.disabled = false;
+                    return;
                 }
+            }
+
+            // Submit the form for all payment methods
+            form.submit();
+        });
+
+        // Show/hide payment sections based on selected payment method
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('stripe-payment-section').style.display = 
+                    this.value === 'stripe' ? 'block' : 'none';
+                document.getElementById('gcash-payment-section').style.display = 
+                    this.value === 'gcash' ? 'block' : 'none';
+                document.getElementById('cod-payment-section').style.display = 
+                    this.value === 'cod' ? 'block' : 'none';
             });
-        } catch (error) {
-            console.error('Stripe initialization error:', error);
-            document.getElementById('card-errors').textContent = 'Failed to initialize payment system. Please try again later.';
-        }
+        });
+
+        // Prevent default form submission for GCash and COD buttons
+        document.getElementById('gcash-submit').addEventListener('click', function(e) {
+            e.preventDefault();
+            form.submit();
+        });
+
+        document.getElementById('cod-submit').addEventListener('click', function(e) {
+            e.preventDefault();
+            form.submit();
+        });
     </script>
 
     <!-- Bootstrap JS -->

@@ -69,4 +69,18 @@ Route::get('/redirect-to-payment', [PaymentController::class, 'redirectToStripe'
 Route::get('/payment-success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 
+// Admin Routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Admin Dashboard
+    Route::get('/dashboard', function () {
+        $totalProducts = \App\Models\Product::count();
+        $totalOrders = \App\Models\Order::count();
+        $totalUsers = \App\Models\User::count();
+        return view('admin.dashboard', compact('totalProducts', 'totalOrders', 'totalUsers'));
+    })->name('dashboard');
+    // Bestseller Management
+    Route::get('/bestsellers', [\App\Http\Controllers\Admin\BestsellerController::class, 'index'])->name('bestsellers.index');
+    Route::post('/bestsellers/{product}/toggle', [\App\Http\Controllers\Admin\BestsellerController::class, 'toggleBestSeller'])->name('bestsellers.toggle');
+});
+
 
