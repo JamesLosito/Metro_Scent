@@ -17,11 +17,7 @@ Route::get('/', function () {
     return view('welcome');  // Make sure resources/views/welcome.blade.php exists
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+
 
 require __DIR__.'/auth.php';
 
@@ -84,3 +80,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::post('/contact-submit', [ContactController::class, 'submit'])->name('contact.submit');
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::get('/profile/edit', function () {
+    return view('edit-profile'); // Create this view if needed
+})->name('profile.edit');
