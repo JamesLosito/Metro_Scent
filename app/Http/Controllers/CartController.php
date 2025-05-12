@@ -82,26 +82,33 @@ class CartController extends Controller
     }
 
     // Remove an item from the cart
-    public function remove($id)
+    public function remove(Request $request)
     {
-        // Ensure the user is authenticated
-        $userId = Auth::id();
-        
-        if (!$userId) {
-            return redirect()->route('login')->with('error', 'You must be logged in to remove items from your cart.');
+        try {
+            $itemId = $request->input('item_id');
+            $cartItem = CartItem::where('id', $itemId)
+                              ->where('user_id', auth()->id())
+                              ->first();
+
+            if (!$cartItem) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cart item not found'
+                ], 404);
+            }
+
+            $cartItem->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item removed from cart successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove item from cart'
+            ], 500);
         }
-
-        // Fetch the cart item
-        $item = CartItem::where('id', $id)->where('user_id', $userId)->first();
-
-        if ($item) {
-            // Delete the cart item
-            $item->delete();
-            return back()->with('message', 'Item removed from your cart.');
-        }
-
-        // If item doesn't exist, return an error message
-        return back()->with('error', 'Item not found in your cart.');
     }
 
     public function updateQuantity(Request $request)

@@ -109,33 +109,166 @@
         .notification-popup {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 20px;
+            right: 20px;
             z-index: 9999;
             width: 100%;
-            max-width: 600px;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-content {
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-popup.success .notification-content {
+            background-color: #5d1d48;
+            color: white;
+            border-left: 4px solid #4a1839;
         }
 
         .notification-popup.error .notification-content {
             background-color: #dc3545;
             color: white;
-            padding: 15px 20px;
-            text-align: left;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
+            border-left: 4px solid #c82333;
         }
 
-        .error-mark {
-            margin-right: 10px;
-            font-size: 18px;
-            font-weight: bold;
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 20px;
         }
 
         .notification-message {
-            font-size: 16px;
+            flex-grow: 1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            opacity: 0.7;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+            font-size: 18px;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .delete-item {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-item:hover {
+            background-color: #dc3545;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .confirmation-title {
+            color: #5d1d48;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .confirmation-message {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .confirmation-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .confirm-delete:hover {
+            background-color: #c82333;
+        }
+
+        .cancel-delete {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .cancel-delete:hover {
+            background-color: #e9ecef;
         }
     </style>
 </head>
@@ -176,7 +309,7 @@
                                         <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>
                                         <label class="form-check-label" for="cartItem{{ $item->id }}">
                                             <strong>{{ $item->product->name }}</strong><br>
-                                            ₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display">{{ $item->quantity }}</span>
+                                            ₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display" data-id="{{ $item->id }}">{{ $item->quantity }}</span>
                                             @if($isOutOfStock)
                                                 <span class="text-danger">(Out of Stock)</span>
                                             @endif
@@ -186,6 +319,9 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary decrement" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>-</button>
                                         <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1" max="{{ $item->product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
                                         <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
+                                        <button type="button" class="btn btn-sm btn-danger delete-item ms-2" data-id="{{ $item->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <span class="item-total" data-id="{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
@@ -223,9 +359,29 @@
             const checkoutButton = document.getElementById('checkoutButton');
             let shippingFee = 50;
 
-            let itemTotals = @json($cartItems->mapWithKeys(function ($item) {
-                return [$item->id => $item->product ? $item->product->price * $item->quantity : 0];
+            // Store item prices for calculations
+            let itemPrices = @json($cartItems->mapWithKeys(function ($item) {
+                return [$item->id => $item->product ? $item->product->price : 0];
             }));
+
+            function updateItemTotal(itemId, quantity) {
+                const price = itemPrices[itemId] || 0;
+                const total = price * quantity;
+                
+                // Update the item total display
+                const itemTotalSpan = document.querySelector(`.item-total[data-id="${itemId}"]`);
+                if (itemTotalSpan) {
+                    itemTotalSpan.textContent = `₱${total.toFixed(2)}`;
+                }
+
+                // Update the quantity display
+                const quantityDisplay = document.querySelector(`.quantity-display[data-id="${itemId}"]`);
+                if (quantityDisplay) {
+                    quantityDisplay.textContent = quantity;
+                }
+
+                return total;
+            }
 
             function updateTotal() {
                 let subtotal = 0;
@@ -237,11 +393,13 @@
                         const itemId = checkbox.value;
                         const itemElement = checkbox.closest('.list-group-item');
                         const isOutOfStock = itemElement.querySelector('.text-danger') !== null;
+                        const quantityInput = itemElement.querySelector('.quantity');
                         
                         if (isOutOfStock) {
                             hasOutOfStock = true;
                         } else {
-                            subtotal += itemTotals[itemId] || 0;
+                            const quantity = parseInt(quantityInput.value) || 0;
+                            subtotal += updateItemTotal(itemId, quantity);
                             hasSelected = true;
                         }
                     }
@@ -256,7 +414,6 @@
                 shippingFeeDisplay.textContent = hasSelected ? shippingFee.toFixed(2) : "0.00";
                 cartTotalDisplay.textContent = total.toFixed(2);
                 
-                // Enable/disable checkout button based on selection and stock status
                 checkoutButton.disabled = !hasSelected || hasOutOfStock;
                 
                 if (hasOutOfStock) {
@@ -264,50 +421,34 @@
                 }
             }
 
-            // Add form submission validation
-            checkoutForm.addEventListener('submit', function(e) {
-                const selectedItems = document.querySelectorAll('.item-checkbox:checked');
-                let hasOutOfStock = false;
+            function showNotification(type, message) {
+                const notification = document.getElementById(`${type}-notification`);
+                const messageElement = notification.querySelector('.notification-message');
+                const closeButton = notification.querySelector('.notification-close');
                 
-                selectedItems.forEach(checkbox => {
-                    const itemElement = checkbox.closest('.list-group-item');
-                    if (itemElement.querySelector('.text-danger')) {
-                        hasOutOfStock = true;
-                    }
-                });
+                // Set message
+                messageElement.textContent = message;
+                
+                // Show notification
+                notification.style.display = 'block';
+                
+                // Add close button functionality
+                closeButton.onclick = function() {
+                    notification.style.display = 'none';
+                };
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
 
-                if (selectedItems.length === 0) {
-                    e.preventDefault();
-                    showErrorNotification('Please select at least one item to checkout.');
-                } else if (hasOutOfStock) {
-                    e.preventDefault();
-                    showErrorNotification('Cannot checkout: Some selected items are out of stock.');
-                }
-            });
+            function showSuccessNotification(message) {
+                showNotification('success', message);
+            }
 
             function showErrorNotification(message) {
-                const notification = document.getElementById('error-notification');
-                if (!notification) {
-                    // Create notification element if it doesn't exist
-                    const newNotification = document.createElement('div');
-                    newNotification.id = 'error-notification';
-                    newNotification.className = 'notification-popup error';
-                    newNotification.innerHTML = `
-                        <div class="notification-content">
-                            <span class="error-mark">!</span>
-                            <span class="notification-message"></span>
-                        </div>
-                    `;
-                    document.body.appendChild(newNotification);
-                }
-                
-                const messageElement = document.querySelector('#error-notification .notification-message');
-                messageElement.textContent = message;
-                document.getElementById('error-notification').style.display = 'block';
-                
-                setTimeout(() => {
-                    document.getElementById('error-notification').style.display = 'none';
-                }, 3000);
+                showNotification('error', message);
             }
 
             function ajaxUpdateQuantity(itemId, newQty) {
@@ -326,43 +467,184 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const itemTotalSpan = document.querySelector(`.item-total[data-id="${itemId}"]`);
-                        itemTotalSpan.textContent = `₱${data.new_total.toFixed(2)}`;
-                        itemTotals[itemId] = data.new_total;
                         updateTotal();
+                        showSuccessNotification('Quantity updated successfully');
+                    } else {
+                        showErrorNotification(data.message || 'Failed to update quantity');
                     }
                 })
-                .catch(error => console.error("Error updating quantity:", error));
+                .catch(error => {
+                    console.error("Error updating quantity:", error);
+                    showErrorNotification('Failed to update quantity. Please try again.');
+                });
             }
 
+            // Quantity increment button
             document.querySelectorAll('.increment').forEach(button => {
                 button.addEventListener('click', function () {
                     const input = document.querySelector(`.quantity[data-id="${button.dataset.id}"]`);
+                    const maxStock = parseInt(input.getAttribute('max'));
                     let value = parseInt(input.value, 10) + 1;
+                    
+                    if (value > maxStock) {
+                        showErrorNotification('Cannot exceed available stock');
+                        return;
+                    }
+                    
                     input.value = value;
+                    // Update display immediately
+                    updateItemTotal(button.dataset.id, value);
+                    // Then update server
                     ajaxUpdateQuantity(button.dataset.id, value);
                 });
             });
 
+            // Quantity decrement button
             document.querySelectorAll('.decrement').forEach(button => {
                 button.addEventListener('click', function () {
                     const input = document.querySelector(`.quantity[data-id="${button.dataset.id}"]`);
                     let value = Math.max(1, parseInt(input.value, 10) - 1);
                     input.value = value;
+                    // Update display immediately
+                    updateItemTotal(button.dataset.id, value);
+                    // Then update server
                     ajaxUpdateQuantity(button.dataset.id, value);
                 });
             });
 
+            // Quantity input change
             document.querySelectorAll('.quantity').forEach(input => {
                 input.addEventListener('change', function () {
+                    const maxStock = parseInt(input.getAttribute('max'));
                     let value = Math.max(1, parseInt(input.value, 10));
-                    input.value = value;
+                    
+                    if (value > maxStock) {
+                        showErrorNotification('Cannot exceed available stock');
+                        value = maxStock;
+                        input.value = value;
+                    }
+                    
+                    // Update display immediately
+                    updateItemTotal(input.dataset.id, value);
+                    // Then update server
                     ajaxUpdateQuantity(input.dataset.id, value);
                 });
             });
 
+            // Checkbox change event
             checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
+
+            // Initial total calculation
+            updateTotal();
+
+            let itemToDelete = null;
+            const modal = document.getElementById('confirmationModal');
+            const confirmButton = modal.querySelector('.confirm-delete');
+            const cancelButton = modal.querySelector('.cancel-delete');
+
+            function showConfirmationModal(itemId) {
+                itemToDelete = itemId;
+                modal.style.display = 'flex';
+            }
+
+            function hideConfirmationModal() {
+                modal.style.display = 'none';
+                itemToDelete = null;
+            }
+
+            confirmButton.addEventListener('click', function() {
+                if (itemToDelete) {
+                    deleteCartItem(itemToDelete);
+                    hideConfirmationModal();
+                }
+            });
+
+            cancelButton.addEventListener('click', hideConfirmationModal);
+
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideConfirmationModal();
+                }
+            });
+
+            function deleteCartItem(itemId) {
+                fetch("{{ route('cart.remove') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        item_id: itemId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const itemElement = document.querySelector(`.list-group-item:has([data-id="${itemId}"])`);
+                        if (itemElement) {
+                            itemElement.style.transition = 'all 0.3s ease';
+                            itemElement.style.opacity = '0';
+                            itemElement.style.transform = 'translateX(20px)';
+                            setTimeout(() => {
+                                itemElement.remove();
+                                updateTotal();
+                                showSuccessNotification('Item removed from cart successfully');
+                                
+                                if (document.querySelectorAll('.list-group-item').length === 0) {
+                                    window.location.reload();
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        showErrorNotification(data.message || 'Failed to remove item from cart');
+                    }
+                })
+                .catch(error => {
+                    console.error("Error removing item:", error);
+                    showErrorNotification('Failed to remove item from cart. Please try again.');
+                });
+            }
+
+            // Update delete button event listeners
+            document.querySelectorAll('.delete-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    showConfirmationModal(this.dataset.id);
+                });
+            });
         });
     </script>
+
+    <!-- Success Notification Template -->
+    <div id="success-notification" class="notification-popup success">
+        <div class="notification-content">
+            <span class="notification-icon">✓</span>
+            <span class="notification-message"></span>
+            <button class="notification-close">&times;</button>
+        </div>
+    </div>
+
+    <!-- Error Notification Template -->
+    <div id="error-notification" class="notification-popup error">
+        <div class="notification-content">
+            <span class="notification-icon">!</span>
+            <span class="notification-message"></span>
+            <button class="notification-close">&times;</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h3 class="confirmation-title">Remove Item</h3>
+            <p class="confirmation-message">Are you sure you want to remove this item from your cart?</p>
+            <div class="confirmation-buttons">
+                <button class="confirmation-button cancel-delete">Cancel</button>
+                <button class="confirmation-button confirm-delete">Remove</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
