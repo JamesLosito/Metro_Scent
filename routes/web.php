@@ -83,4 +83,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/bestsellers/{product}/toggle', [\App\Http\Controllers\Admin\BestsellerController::class, 'toggleBestSeller'])->name('bestsellers.toggle');
 });
 
-
+Route::post('/contact-submit', [ContactController::class, 'submit'])->name('contact.submit');

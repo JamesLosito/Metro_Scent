@@ -88,18 +88,19 @@
         <h2 class="section-title">Contact Us</h2>
         <div class="row justify-content-center">
             <div class="col-md-7">
-                <form class="p-4 shadow rounded bg-white">
+                <form method="POST" action="{{ route('contact.submit') }}" class="p-4 shadow rounded bg-white">
+                    @csrf
                     <div class="mb-3">
                         <label for="name" class="form-label">Your Name</label>
-                        <input type="text" class="form-control" id="name" placeholder="Enter your name">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Your Email</label>
-                        <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
                     </div>
                     <div class="mb-3">
                         <label for="message" class="form-label">Message</label>
-                        <textarea class="form-control" id="message" rows="5" placeholder="Type your message"></textarea>
+                        <textarea class="form-control" id="message" name="message" rows="5" placeholder="Type your message" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-captivating w-100">Send Message</button>
                 </form>
