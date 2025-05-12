@@ -360,7 +360,7 @@
                                     <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1" max="{{ $item->product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
                                     <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
                                     <button type="button" class="btn btn-sm btn-danger delete-item ms-2" data-id="{{ $item->id }}">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash" style="color: #4a1839;"></i>
                                     </button>
                                 </div>
                                 <span class="item-total ms-3" data-id="{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
