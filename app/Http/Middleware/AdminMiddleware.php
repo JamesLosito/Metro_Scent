@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use Closure;
@@ -10,10 +9,11 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check() || !Auth::user()->is_admin) {
-            return redirect('/')->with('error', 'Unauthorized access.');
+        // Check if user is logged in and is_admin = 1
+        if (Auth::check() && Auth::user()->is_admin == 1) {
+            return $next($request);
         }
 
-        return $next($request);
+        abort(403, 'Unauthorized action.'); // or redirect()->route('home')
     }
-} 
+}
