@@ -25,7 +25,7 @@
                 </button>
             </form>
         @else
-            <a href="{{ url('/login') }}" class="btn btn-primary mt-3">Login to Add to Cart</a>
+            <a href="{{ url('/login') }}" class="btn btn-primary mt-3">Add to Cart</a>
         @endauth
     </div>
 </div>
