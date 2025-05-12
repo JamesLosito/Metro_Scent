@@ -42,17 +42,16 @@
                 </a>
             @endif
 
-            <div class="flex space-x-3">
-                <x-primary-button>
-                    {{ __('Log in') }}
-                </x-primary-button>
+           <div class="flex gap-4">
+            <x-primary-button style="background-color: #5d1d48; color: white;">
+                {{ __('Log in') }}
+            </x-primary-button>
 
-                <!-- Cancel Button -->
-                <a href="{{ url('/') }}"
-                   class="inline-flex items-center px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400 transition">
-                    {{ __('Cancel') }}
-                </a>
-            </div>
+            <a href="{{ url('/') }}"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                {{ __('Cancel') }}
+            </a>
+        </div>
         </div>
 
     </form>

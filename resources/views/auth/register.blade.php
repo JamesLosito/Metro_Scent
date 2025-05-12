@@ -39,9 +39,9 @@
                         </a>
                     </p>
 
-                    <x-primary-button class="ml-4">
-                        {{ __('Register') }}
-                    </x-primary-button>
+                <x-primary-button class="ml-4" style="background-color: #5d1d48; color: white;">
+                    {{ __('Register') }}
+                </x-primary-button>
                 </div>
             </form>
 
