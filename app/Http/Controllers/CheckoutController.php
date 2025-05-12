@@ -38,42 +38,31 @@ public function processCheckout(Request $request)
             return redirect()->back()->with('error', 'Payment failed.');
         }
 
-        // Calculate total (trust but verify)
-        $total = 0;
-        $selectedItems = [];
-        
-        foreach ($request->selected_items as $itemId) {
-            $quantity = $request->input("item_quantity.$itemId");
-            $price = $request->input("price.$itemId");
-            
-            if (!$quantity || !$price) {
-                Log::error('Missing quantity or price', [
-                    'item_id' => $itemId,
-                    'quantity' => $quantity,
-                    'price' => $price
-                ]);
-                throw new \Exception('Invalid item data');
-            }
-            
-            $total += $quantity * $price;
-            
-            $selectedItems[] = [
-                'id' => $itemId,
-                'quantity' => $quantity,
-                'price' => $price
-            ];
+        // Validate selected items and calculate total
+        $selectedItems = CartItem::with('product')
+            ->where('user_id', Auth::id())
+            ->whereIn('id', $request->selected_items)
+            ->get();
+
+        if ($selectedItems->isEmpty()) {
+            throw new \Exception('No items selected for checkout.');
         }
 
-        // Add shipping fee to total
-        $total += 50.00;
+        // Verify stock availability again
+        foreach ($selectedItems as $item) {
+            if ($item->product->stock < $item->quantity) {
+                throw new \Exception("Item {$item->product->name} is out of stock.");
+            }
+        }
 
-        Log::info('Creating order', [
-            'total' => $total,
-            'selected_items' => $selectedItems,
-            'user_id' => Auth::id()
-        ]);
+        // Calculate total
+        $subtotal = $selectedItems->sum(function ($item) {
+            return $item->product->price * $item->quantity;
+        });
+        $shippingFee = 50.00;
+        $total = $subtotal + $shippingFee;
 
-        // Save Order
+        // Create order
         $order = new Order();
         $order->user_id = Auth::id();
         $order->full_name = $request->full_name;
@@ -81,49 +70,40 @@ public function processCheckout(Request $request)
         $order->address = $request->address;
         $order->total = $total;
         $order->stripe_payment_intent = $paymentIntentId;
+        $order->status = 'pending';
         
         if (!$order->save()) {
-            Log::error('Failed to save order');
             throw new \Exception('Failed to save order');
         }
 
-        Log::info('Order created', ['order_id' => $order->id]);
-
-        // Save Order Items
+        // Create order items and update stock
         foreach ($selectedItems as $item) {
-            $cartItem = CartItem::find($item['id']);
-            if (!$cartItem) {
-                throw new \Exception('Cart item not found');
-            }
-
             $orderItem = new OrderItem();
             $orderItem->order_id = $order->id;
-            $orderItem->cart_item_id = $item['id'];
-            $orderItem->product_id = $cartItem->product_id;
-            $orderItem->quantity = $item['quantity'];
-            $orderItem->price = $item['price'];
+            $orderItem->product_id = $item->product_id;
+            $orderItem->quantity = $item->quantity;
+            $orderItem->price = $item->product->price;
             
             if (!$orderItem->save()) {
-                Log::error('Failed to save order item', ['item' => $item]);
                 throw new \Exception('Failed to save order item');
             }
+
+            // Update product stock
+            $item->product->decrement('stock', $item->quantity);
         }
 
-        Log::info('Order items created', ['order_id' => $order->id]);
-
-        // Clear user's cart
-        if (Auth::check()) {
-            $deleted = CartItem::where('user_id', Auth::id())->delete();
-            Log::info('Cart cleared for user', [
-                'user_id' => Auth::id(),
-                'items_deleted' => $deleted
-            ]);
-        }
+        // Clear cart
+        CartItem::where('user_id', Auth::id())->delete();
 
         DB::commit();
-        Log::info('Checkout completed successfully', ['order_id' => $order->id]);
         
-        return redirect()->route('checkout.success')->with('success', 'Order placed successfully!');
+        // Send order confirmation email
+        // TODO: Implement email sending
+        
+        return redirect()->route('checkout.success')
+            ->with('success', 'Order placed successfully!')
+            ->with('order_id', $order->id);
+
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error('Checkout failed', [
@@ -155,11 +135,28 @@ public function checkout(Request $request)
         return redirect()->route('cart.index')->with('error', 'Selected items not found in your cart.');
     }
 
+    // Check stock availability
+    $outOfStockItems = $selectedItems->filter(function ($item) {
+        return $item->product->stock < $item->quantity;
+    });
+
+    if ($outOfStockItems->isNotEmpty()) {
+        $itemNames = $outOfStockItems->pluck('product.name')->join(', ');
+        return redirect()->route('cart.index')
+            ->with('error', "The following items are out of stock: {$itemNames}");
+    }
+
     $shippingFee = 50.00;
+    $subtotal = $selectedItems->sum(function ($item) {
+        return $item->product->price * $item->quantity;
+    });
+    $total = $subtotal + $shippingFee;
 
     return view('checkout', [
         'selectedItems' => $selectedItems,
-        'shippingFee' => $shippingFee
+        'shippingFee' => $shippingFee,
+        'subtotal' => $subtotal,
+        'total' => $total
     ]);
 }
 

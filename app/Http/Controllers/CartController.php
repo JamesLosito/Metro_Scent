@@ -41,9 +41,11 @@ class CartController extends Controller
         // Validate the request data
         $validated = $request->validate([
             'product_id' => 'required|exists:products,product_id', // Ensure the product exists
+            'quantity' => 'required|integer|min:1', // Add quantity validation
         ]);
 
         $productId = $validated['product_id'];
+        $quantity = $validated['quantity'];
         $product = Product::find($productId);
 
         // Check if product is in stock
@@ -54,6 +56,14 @@ class CartController extends Controller
             return back()->with('error', 'This product is out of stock.');
         }
 
+        // Check if requested quantity is available
+        if ($quantity > $product->stock) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Requested quantity exceeds available stock.'], 400);
+            }
+            return back()->with('error', 'Requested quantity exceeds available stock.');
+        }
+
         // Check if the product is already in the user's cart
         $existingItem = CartItem::where('user_id', $userId)
                                 ->where('product_id', $productId)
@@ -61,7 +71,17 @@ class CartController extends Controller
 
         if ($existingItem) {
             // If the item already exists, increase the quantity
-            $existingItem->increment('quantity', 1);
+            $newQuantity = $existingItem->quantity + $quantity;
+            
+            // Check if new total quantity exceeds stock
+            if ($newQuantity > $product->stock) {
+                if ($request->ajax()) {
+                    return response()->json(['error' => 'Total quantity would exceed available stock.'], 400);
+                }
+                return back()->with('error', 'Total quantity would exceed available stock.');
+            }
+            
+            $existingItem->increment('quantity', $quantity);
             if ($request->ajax()) {
                 return response()->json(['message' => 'Item quantity updated in your cart!']);
             }
@@ -72,7 +92,7 @@ class CartController extends Controller
         CartItem::create([
             'user_id' => $userId,
             'product_id' => $productId,
-            'quantity' => 1,
+            'quantity' => $quantity,
         ]);
 
         if ($request->ajax()) {

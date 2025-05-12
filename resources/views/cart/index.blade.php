@@ -270,6 +270,45 @@
         .cancel-delete:hover {
             background-color: #e9ecef;
         }
+
+        .cart-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            transition: all 0.3s ease;
+        }
+
+        .cart-item-link:hover {
+            opacity: 0.8;
+        }
+
+        .cart-item-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .cart-item-details {
+            margin-left: 15px;
+        }
+
+        .cart-item-name {
+            color: #5d1d48;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .cart-item-stock {
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
@@ -301,30 +340,30 @@
                                 $isOutOfStock = $item->product->stock <= 0;
                             @endphp
                             <li class="list-group-item d-flex align-items-center">
-                                <div class="me-3">
-                                    <img src="{{ asset($imagePath) }}" alt="{{ $item->product->name }}" class="product-img">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input item-checkbox" type="checkbox" name="selected_items[]" value="{{ $item->id }}" id="cartItem{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>
-                                        <label class="form-check-label" for="cartItem{{ $item->id }}">
-                                            <strong>{{ $item->product->name }}</strong><br>
-                                            ₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display" data-id="{{ $item->id }}">{{ $item->quantity }}</span>
+                                <a href="{{ route('product.show', $item->product->product_id) }}" class="cart-item-link">
+                                    <div class="cart-item-content">
+                                        <img src="{{ asset($imagePath) }}" alt="{{ $item->product->name }}" class="product-img">
+                                        <div class="cart-item-details">
+                                            <div class="cart-item-name">{{ $item->product->name }}</div>
+                                            <div class="cart-item-price">₱{{ number_format($item->product->price, 2) }} x <span class="quantity-display" data-id="{{ $item->id }}">{{ $item->quantity }}</span></div>
                                             @if($isOutOfStock)
-                                                <span class="text-danger">(Out of Stock)</span>
+                                                <div class="cart-item-stock text-danger">(Out of Stock)</div>
                                             @endif
-                                        </label>
+                                        </div>
                                     </div>
-                                    <div class="quantity-controls">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary decrement" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>-</button>
-                                        <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1" max="{{ $item->product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
-                                        <button type="button" class="btn btn-sm btn-danger delete-item ms-2" data-id="{{ $item->id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                </a>
+                                <div class="quantity-controls ms-3">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary decrement" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>-</button>
+                                    <input type="number" value="{{ $item->quantity }}" class="form-control form-control-sm quantity" data-id="{{ $item->id }}" min="1" max="{{ $item->product->stock }}" {{ $isOutOfStock ? 'disabled' : '' }}>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary increment" data-id="{{ $item->id }}" {{ $isOutOfStock ? 'disabled' : '' }}>+</button>
+                                    <button type="button" class="btn btn-sm btn-danger delete-item ms-2" data-id="{{ $item->id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
-                                <span class="item-total" data-id="{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
+                                <span class="item-total ms-3" data-id="{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
                                 <input type="hidden" name="item_quantity[{{ $item->id }}]" class="item-quantity" value="{{ $item->quantity }}">
                             </li>
                         @else
