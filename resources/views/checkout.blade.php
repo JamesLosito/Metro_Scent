@@ -127,67 +127,119 @@
     <!-- Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        const stripe = Stripe("{{ config('services.stripe.key') }}");
-        const elements = stripe.elements();
-        const cardElement = elements.create('card');
-        cardElement.mount('#card-element');
-
-        const form = document.getElementById('payment-form');
-        const cardErrors = document.getElementById('card-errors');
-        const submitButton = document.getElementById('submit-button');
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            submitButton.disabled = true;
-
-            const response = await fetch('{{ route("checkout.createPaymentIntent") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    full_name: form.full_name.value,
-                    email: form.email.value,
-                    address: form.address.value,
-                    amount: {{ intval(($grandTotal + 50) * 100) }} // includes shipping
-                })
+        // Add error handling for Stripe initialization
+        try {
+            const stripeKey = "{{ config('services.stripe.key') }}";
+            if (!stripeKey) {
+                throw new Error('Stripe key is not configured');
+            }
+            
+            const stripe = Stripe(stripeKey);
+            const elements = stripe.elements({
+                appearance: {
+                    theme: 'stripe',
+                }
             });
 
-            const data = await response.json();
-
-            if (!data.client_secret) {
-                cardErrors.textContent = "Failed to initiate payment.";
-                submitButton.disabled = false;
-                return;
-            }
-
-            const result = await stripe.confirmCardPayment(data.client_secret, {
-                payment_method: {
-                    card: cardElement,
-                    billing_details: {
-                        name: form.full_name.value,
-                        email: form.email.value,
-                        address: {
-                            line1: form.address.value
+            // Create and mount the card element
+            const cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#32325d',
+                        fontFamily: '"Times New Roman", serif',
+                        '::placeholder': {
+                            color: '#aab7c4'
                         }
+                    },
+                    invalid: {
+                        color: '#fa755a',
+                        iconColor: '#fa755a'
                     }
                 }
             });
 
-            if (result.error) {
-                cardErrors.textContent = result.error.message;
-                submitButton.disabled = false;
-            } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                const paymentInput = document.createElement('input');
-                paymentInput.type = 'hidden';
-                paymentInput.name = 'payment_intent_id';
-                paymentInput.value = result.paymentIntent.id;
-                form.appendChild(paymentInput);
-
-                form.submit();
+            // Mount the card element
+            const cardContainer = document.getElementById('card-element');
+            if (!cardContainer) {
+                throw new Error('Card element container not found');
             }
-        });
+            cardElement.mount('#card-element');
+
+            // Handle real-time validation errors
+            cardElement.on('change', function(event) {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+
+            const form = document.getElementById('payment-form');
+            const cardErrors = document.getElementById('card-errors');
+            const submitButton = document.getElementById('submit-button');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                submitButton.disabled = true;
+                cardErrors.textContent = '';
+
+                try {
+                    const response = await fetch('{{ route("checkout.createPaymentIntent") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            full_name: form.full_name.value,
+                            email: form.email.value,
+                            address: form.address.value,
+                            amount: {{ intval(($grandTotal + 50) * 100) }} // includes shipping
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.client_secret) {
+                        throw new Error(data.error || 'Failed to initiate payment');
+                    }
+
+                    const result = await stripe.confirmCardPayment(data.client_secret, {
+                        payment_method: {
+                            card: cardElement,
+                            billing_details: {
+                                name: form.full_name.value,
+                                email: form.email.value,
+                                address: {
+                                    line1: form.address.value
+                                }
+                            }
+                        }
+                    });
+
+                    if (result.error) {
+                        throw new Error(result.error.message);
+                    }
+
+                    if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+                        const paymentInput = document.createElement('input');
+                        paymentInput.type = 'hidden';
+                        paymentInput.name = 'payment_intent_id';
+                        paymentInput.value = result.paymentIntent.id;
+                        form.appendChild(paymentInput);
+                        form.submit();
+                    }
+                } catch (error) {
+                    cardErrors.textContent = error.message;
+                    submitButton.disabled = false;
+                }
+            });
+        } catch (error) {
+            console.error('Stripe initialization error:', error);
+            document.getElementById('card-errors').textContent = 'Failed to initialize payment system. Please try again later.';
+        }
     </script>
 
     <!-- Bootstrap JS -->

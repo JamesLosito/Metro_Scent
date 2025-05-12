@@ -324,7 +324,7 @@
         @if ($cartItems->isEmpty())
             <div class="alert alert-info">Your cart is empty.</div>
         @else
-            <form method="POST" action="{{ route('checkout') }}" id="checkoutForm">
+            <form method="POST" action="{{ route('checkout.store') }}" id="checkoutForm">
                 @csrf
 
                 <ul class="list-group mb-4">
