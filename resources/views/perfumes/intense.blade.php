@@ -211,6 +211,7 @@
                                 <input type="hidden" name="product_id" value="{{ $product->product_id }}">
                                 <input type="hidden" name="product_name" value="{{ $product->name }}">
                                 <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+                                <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="btn btn-primary mt-2" {{ $product->stock <= 0 ? 'disabled' : '' }}>
                                     {{ $product->stock <= 0 ? 'Out of Stock' : 'Add to Cart' }}
                                 </button>
@@ -244,32 +245,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // Create a single instance of notifications
+    let successNotification = null;
+    let errorNotification = null;
+
     document.addEventListener('DOMContentLoaded', function() {
-        const successNotification = document.getElementById('success-notification');
-        const errorNotification = document.getElementById('error-notification');
+        // Initialize notifications only once
+        if (!successNotification) {
+            successNotification = document.getElementById('success-notification');
+            if (successNotification && successNotification.parentNode !== document.body) {
+                document.body.appendChild(successNotification);
+            }
+        }
+        
+        if (!errorNotification) {
+            errorNotification = document.getElementById('error-notification');
+            if (errorNotification && errorNotification.parentNode !== document.body) {
+                document.body.appendChild(errorNotification);
+            }
+        }
         
         // Attach handlers to all add-to-cart forms
         const forms = document.querySelectorAll('form[action*="/cart/add"]');
         forms.forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
                 const productName = this.querySelector('input[name="product_name"]').value;
                 const stock = parseInt(this.querySelector('input[name="product_stock"]').value);
-                
+
                 if (stock <= 0) {
                     showErrorNotification('This product is out of stock.');
                     return false;
                 }
-                
-                // Show success notification
-                const message = successNotification.querySelector('.notification-message');
-                message.textContent = productName + ' has been added to your cart.';
-                successNotification.style.display = 'block';
-                
+
                 // Submit via AJAX
                 const formData = new FormData(this);
-                
                 fetch(this.action, {
                     method: 'POST',
                     body: formData,
@@ -287,32 +297,38 @@
                     return response.json();
                 })
                 .then(data => {
-                    const message = successNotification.querySelector('.notification-message');
-                    message.textContent = data.message || (productName + ' has been added to your cart.');
-                    successNotification.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        successNotification.style.display = 'none';
-                    }, 3000);
+                    if (successNotification) {
+                        const message = successNotification.querySelector('.notification-message');
+                        if (message) {
+                            message.textContent = data.message || (productName + ' has been added to your cart.');
+                            successNotification.style.display = 'block';
+                            setTimeout(() => {
+                                successNotification.style.display = 'none';
+                            }, 3000);
+                        }
+                    }
                 })
                 .catch(error => {
                     console.error('Error adding to cart:', error);
                     showErrorNotification(error.message || 'Failed to add item to cart. Please try again.');
-                    successNotification.style.display = 'none';
                 });
             });
         });
-        
-        function showErrorNotification(message) {
-            const messageElement = errorNotification.querySelector('.notification-message');
-            messageElement.textContent = message;
-            errorNotification.style.display = 'block';
-            
-            setTimeout(() => {
-                errorNotification.style.display = 'none';
-            }, 3000);
-        }
     });
+
+    function showErrorNotification(message) {
+        if (!errorNotification) return;
+        
+        const messageElement = errorNotification.querySelector('.notification-message');
+        if (!messageElement) return;
+        
+        messageElement.textContent = message;
+        errorNotification.style.display = 'block';
+        
+        setTimeout(() => {
+            errorNotification.style.display = 'none';
+        }, 3000);
+    }
     </script>
 </body>
 </html>

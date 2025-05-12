@@ -11,7 +11,9 @@ class Order extends Model
         'address', 
         'total', 
         'stripe_payment_intent',
-        'user_id'
+        'user_id',
+        'payment_method',
+        'status'
     ];
 
     public function orderItems()

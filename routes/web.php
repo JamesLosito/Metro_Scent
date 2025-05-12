@@ -50,10 +50,8 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-    Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
-    Route::post('/process-checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.processCheckout');
-    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-    Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+    Route::post('/checkout/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
+    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 });
 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
