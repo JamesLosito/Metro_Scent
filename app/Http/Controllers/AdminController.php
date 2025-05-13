@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -214,14 +215,27 @@ class AdminController extends Controller
     /**
      * Mark an order as processed
      */
-    public function processOrder($id)
+    public function processOrder($orderId)
     {
-        $order = Order::findOrFail($id);
-        $order->status = 'processed';
-        $order->save();
+        $order = Order::find($orderId);
 
-        return redirect()->back()->with('success', 'Order marked as processed.');
+        if ($order) {
+            // Update order status and set delivery date
+            $order->status = 'processed';
+            $order->delivery_date = now(); // You can change this to a specific date logic if needed
+            $order->save();
+
+            // Redirect back to orders.blade.php with a success message
+            return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+        }
+
+        // Redirect if order not found
+        return redirect()->route('admin.orders')->with('error', 'Order not found.');
+
     }
+
+
+
 
     /**
      * Show the admin's profile
