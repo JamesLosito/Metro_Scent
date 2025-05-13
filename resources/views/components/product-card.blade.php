@@ -1,33 +1,48 @@
 @php
     $folder = strtoupper($product->type);
-    $imagePath = 'images/' . $folder . '/' . $product->image;
+    if ($product->image) {
+        if (Str::contains($product->image, '/')) {
+            // New style: full path
+            $imagePath = 'storage/' . $product->image;
+        } else {
+            // Old style: just filename
+            $imagePath = 'storage/products/' . strtolower($product->type) . '/' . $product->image;
+        }
+    } else {
+        $imagePath = 'images/no-image.png';
+    }
     $isOutOfStock = $product->stock <= 0;
 @endphp
 
 <div class="col-md-4">
-    <div class="product-card">
-        <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
-        <h5 class="mt-3">{{ $product->name }}</h5>
-        <h6 class="text-muted">₱{{ number_format($product->price, 2) }}</h6>
-        <p>{{ $product->description }}</p>
-        <div class="stock-status {{ $isOutOfStock ? 'text-danger' : 'text-success' }}">
-            {{ $isOutOfStock ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
+    <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
+        <div class="product-card position-relative">
+            @if((!empty($showBestSellerBadge) && $showBestSellerBadge) || (!empty($product->is_bestseller) && $product->is_bestseller))
+                <span class="best-seller-badge">Best Seller</span>
+            @endif
+            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/no-image.png') }}';">
+            <h5 class="mt-3">{{ $product->name }}</h5>
+            <h6 class="text-muted">₱{{ number_format($product->price, 2) }}</h6>
+            <p>{{ $product->description }}</p>
+            <div class="stock-status {{ $isOutOfStock ? 'text-danger' : 'text-success' }}">
+                {{ $isOutOfStock ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
+            </div>
         </div>
-        @auth
-            <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form">
-                @csrf
-                <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-                <input type="hidden" name="product_name" value="{{ $product->name }}">
-                <input type="hidden" name="product_stock" value="{{ $product->stock }}">
-                <input type="hidden" name="quantity" value="1">
-                <button type="submit" class="btn btn-primary mt-3" {{ $isOutOfStock ? 'disabled' : '' }}>
-                    {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
-                </button>
-            </form>
-        @else
-            <a href="{{ url('/login') }}" class="btn btn-primary mt-3">Add to Cart</a>
-        @endauth
-    </div>
+    </a>
+    @auth
+        <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form mt-2">
+            @csrf
+            <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+            <input type="hidden" name="product_name" value="{{ $product->name }}">
+            <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn-primary mt-3" {{ $isOutOfStock ? 'disabled' : '' }}>
+                {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
+            </button>
+        </form>
+    @else
+        <a href="{{ url('/login') }}" class="btn btn-primary mt-3">Add to Cart</a>
+    @endauth
 </div>
 
 <!-- Success Notification Popup -->
@@ -92,6 +107,22 @@
 .stock-status {
     font-weight: bold;
     margin: 10px 0;
+}
+
+.best-seller-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff9800;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 </style>
 

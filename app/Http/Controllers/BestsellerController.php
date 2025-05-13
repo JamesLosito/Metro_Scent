@@ -10,8 +10,8 @@ class BestSellerController extends Controller
 {
     public function index()
     {
-        // Get products ordered by the number of times they've been ordered
-        $bestSellers = Product::select([
+        // Get most ordered products (top 12)
+        $mostOrdered = Product::select([
                 'products.product_id',
                 'products.name',
                 'products.description',
@@ -20,7 +20,7 @@ class BestSellerController extends Controller
                 'products.image',
                 'products.type',
                 'products.is_best_seller',
-                DB::raw('SUM(order_items.quantity) as total_ordered')
+                \DB::raw('SUM(order_items.quantity) as total_ordered')
             ])
             ->join('order_items', 'products.product_id', '=', 'order_items.product_id')
             ->groupBy(
@@ -34,18 +34,17 @@ class BestSellerController extends Controller
                 'products.is_best_seller'
             )
             ->orderBy('total_ordered', 'desc')
-            ->take(12) // Show top 12 bestsellers
+            ->take(12)
             ->get();
 
-        // If we don't have enough ordered products, add some marked as bestsellers
-        if ($bestSellers->count() < 12) {
-            $additionalProducts = Product::where('is_best_seller', 1)
-                ->whereNotIn('product_id', $bestSellers->pluck('product_id'))
-                ->take(12 - $bestSellers->count())
-                ->get();
-            
-            $bestSellers = $bestSellers->concat($additionalProducts);
-        }
+        // Get additional best sellers if not enough
+        $bestSellerMarked = Product::where('is_best_seller', 1)
+            ->whereNotIn('product_id', $mostOrdered->pluck('product_id'))
+            ->take(12 - $mostOrdered->count())
+            ->get();
+
+        // Combine and remove duplicates
+        $bestSellers = $mostOrdered->concat($bestSellerMarked);
 
         return view('bestseller', compact('bestSellers'));
     }

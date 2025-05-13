@@ -31,8 +31,44 @@ Route::get('/view_product/{id}', [ProductController::class, 'show'])->name('prod
 
 
 Route::get('/home', function () {
-    $products = Product::all();
-    return view('home', compact('products'));
+    $products = \App\Models\Product::all();
+    // Get most ordered products (top 6)
+    $mostOrdered = \App\Models\Product::select([
+            'products.product_id',
+            'products.name',
+            'products.description',
+            'products.price',
+            'products.stock',
+            'products.image',
+            'products.type',
+            'products.is_best_seller',
+            \DB::raw('SUM(order_items.quantity) as total_ordered')
+        ])
+        ->join('order_items', 'products.product_id', '=', 'order_items.product_id')
+        ->groupBy(
+            'products.product_id',
+            'products.name',
+            'products.description',
+            'products.price',
+            'products.stock',
+            'products.image',
+            'products.type',
+            'products.is_best_seller'
+        )
+        ->orderBy('total_ordered', 'desc')
+        ->take(6)
+        ->get();
+
+    // Get additional best sellers if not enough
+    $bestSellerMarked = \App\Models\Product::where('is_best_seller', 1)
+        ->whereNotIn('product_id', $mostOrdered->pluck('product_id'))
+        ->take(6 - $mostOrdered->count())
+        ->get();
+
+    // Combine and remove duplicates
+    $bestSellers = $mostOrdered->concat($bestSellerMarked);
+
+    return view('home', compact('products', 'bestSellers'));
 })->name('home');
 
 

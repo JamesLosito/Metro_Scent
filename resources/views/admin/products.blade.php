@@ -192,8 +192,20 @@
             background: #fff;
         }
 
+        /* Fix icon size in pagination */
         .page-link i {
-            font-size: 0.75rem;
+            font-size: 1em !important;
+            width: auto !important;
+            height: auto !important;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .page-item:first-child .page-link,
+        .page-item:last-child .page-link {
+            padding: 0.25rem;
+            min-width: 1.5rem;
+            height: 1.5rem;
         }
 
         .page-link:hover {
@@ -306,11 +318,11 @@
                                 <td>{{ $product->product_id }}</td>
                                 <td>
                                     <div class="product-image-container" data-bs-toggle="modal" data-bs-target="#imagePreviewModal{{ $product->product_id }}">
-                                        <img src="{{ $product->imageUrl }}" 
-                                             alt="{{ $product->name }}" 
-                                             class="product-image" 
-                                             loading="lazy"
-                                             onerror="handleImageError(this)">
+                                        @php
+                                            $type = strtolower($product->type);
+                                            $imagePath = $product->image ? 'storage/products/' . $type . '/' . $product->image : 'images/no-image.png';
+                                        @endphp
+                                        <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-image" loading="lazy" onerror="handleImageError(this)">
                                     </div>
                                     
                                     <!-- Image Preview Modal -->
@@ -321,7 +333,7 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <img src="{{ $product->imageUrl }}" 
+                                                    <img src="{{ asset($imagePath) }}" 
                                                          alt="{{ $product->name }}"
                                                          loading="lazy"
                                                          onerror="handleImageError(this)">
@@ -366,7 +378,7 @@
                 </div>
                 <!-- Pagination -->
                 <div class="d-flex flex-column align-items-center mt-4">
-                    {{ $products->appends(['type' => $type])->links() }}
+                    {{ $products->appends(['type' => $type])->links('vendor.pagination.bootstrap-5') }}
                     <div class="pagination-info">
                         Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
                     </div>
@@ -456,7 +468,11 @@
                             <label for="edit_image{{ $product->product_id }}" class="form-label">Product Image</label>
                             @if($product->image)
                                 <div class="mb-2">
-                                    <img src="{{ $product->imageUrl }}" 
+                                    @php
+                                        $type = strtolower($product->type);
+                                        $imagePath = $product->image ? 'storage/products/' . $type . '/' . $product->image : 'images/no-image.png';
+                                    @endphp
+                                    <img src="{{ asset($imagePath) }}" 
                                          alt="{{ $product->name }}" 
                                          class="product-image" 
                                          loading="lazy"

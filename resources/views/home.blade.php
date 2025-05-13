@@ -194,11 +194,11 @@
         <h2 class="section-title">Recommended for You</h2>
         <div id="recommendedCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
-                @foreach($products->chunk(3) as $index => $chunk)
+                @foreach($bestSellers->chunk(3) as $index => $chunk)
                     <div class="carousel-item @if($index == 0) active @endif">
                         <div class="row">
                             @foreach($chunk as $product)
-                                @include('components.product-card', ['product' => $product])
+                                @include('components.product-card', ['product' => $product, 'showBestSellerBadge' => true])
                             @endforeach
                         </div>
                     </div>
@@ -215,31 +215,15 @@
         </div>
     </div>
 
-    <!-- General Product Display Section -->
-    @php
-        $sections = [
-            'PRODUCTS' => $products,
-            'Bestsellers' => $products->shuffle()->take(6),
-            'Signature moods' => $products->filter(fn($p) => in_array($p->type, ['Captivating', 'Intense', 'Fresh', 'Floral']))->take(4)
-        ];
-    @endphp
-
-    @foreach($sections as $sectionTitle => $sectionProducts)
-        <div class="container mt-5">
-            <h2 class="section-title">{{ $sectionTitle }}</h2>
-            <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-                @foreach($sectionProducts as $product)
-                    @include('components.product-card', ['product' => $product])
-                @endforeach
-            </div>
+    <!-- Other Products Section -->
+    <div class="container mt-5">
+        <h2 class="section-title">Other Products</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            @foreach($products->whereNotIn('product_id', $bestSellers->pluck('product_id'))->take(6) as $product)
+                @include('components.product-card', ['product' => $product])
+            @endforeach
         </div>
-    @endforeach
-
-    @if ($sectionTitle === 'Signature moods')
-    <div class="text-end mb-3">
-        <a href="{{ url('/perfumes?type=scent') }}" class="btn btn-primary">View More SCENT Types</a>
     </div>
-    @endif
 
     <!-- Footer -->
     @include('components.footer')

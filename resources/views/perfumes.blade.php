@@ -209,8 +209,17 @@
         <div class="row">
             @foreach($products as $product)
                 @php
-                    $folder = strtoupper($product->type);
-                    $imagePath = 'images/' . $folder . '/' . $product->image;
+                    if ($product->image) {
+                        if (Str::contains($product->image, '/')) {
+                            // New style: full path
+                            $imagePath = 'storage/' . $product->image;
+                        } else {
+                            // Old style: just filename
+                            $imagePath = 'storage/products/' . strtolower($product->type) . '/' . $product->image;
+                        }
+                    } else {
+                        $imagePath = 'images/no-image.png';
+                    }
                 @endphp
                 <div class="col-md-4">
                     <div class="product-card position-relative {{ $product->stock <= 0 ? 'out-of-stock' : '' }}">
@@ -219,7 +228,7 @@
                                 <span class="out-of-stock-label">Out of Stock</span>
                             @endif
 
-                            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img">
+                            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/no-image.png') }}';">
                             <h5 class="mt-3">{{ $product->name }}</h5>
                             <h6 class="text-muted">{{ $product->price }} PHP</h6>
                             <div class="stock-status {{ $product->stock <= 0 ? 'text-danger' : 'text-success' }}">

@@ -149,8 +149,17 @@
             @if ($bestSellers->count() > 0)
                 @foreach ($bestSellers as $product)
                     @php
-                        $folder = strtoupper($product->type);
-                        $imagePath = 'images/' . $folder . '/' . $product->image;
+                        if ($product->image) {
+                            if (Str::contains($product->image, '/')) {
+                                // New style: full path
+                                $imagePath = 'storage/' . $product->image;
+                            } else {
+                                // Old style: just filename
+                                $imagePath = 'storage/products/' . strtolower($product->type) . '/' . $product->image;
+                            }
+                        } else {
+                            $imagePath = 'images/no-image.png';
+                        }
                     @endphp
                     <div class="col-md-4 mb-4">
                         <div class="product-card">
@@ -158,11 +167,7 @@
                                 <div class="out-of-stock-label">Out of Stock</div>
                             @endif
                             <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit;">
-                                @if ($product->image)
-                                    <img src="{{ asset($imagePath) }}" class="product-img" alt="{{ $product->name }}">
-                                @else
-                                    <img src="{{ asset('images/default-product.png') }}" class="product-img" alt="No Image">
-                                @endif
+                                <img src="{{ asset($imagePath) }}" class="product-img" alt="{{ $product->name }}" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/no-image.png') }}';">
                                 <h5 class="mt-3">{{ $product->name }}</h5>
                                 <p class="text-center mt-2">{{ $product->description }}</p>
                                 <p class="text-center mt-2">Stock: {{ $product->stock }}</p>
