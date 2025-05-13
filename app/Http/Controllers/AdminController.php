@@ -180,7 +180,7 @@ class AdminController extends Controller
      */
     public function showOrders()
     {
-        $orders = Order::with('users', 'products')->get();
+        $orders = Order::with('user', 'products')->get();
         return view('admin.orders', compact('orders'));
     }
 

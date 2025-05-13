@@ -15,8 +15,8 @@
         <tbody>
             @forelse ($orders as $order)
                 <tr>
-                    <!-- Fetch the full_name of the user or display 'Guest' if not available -->
-                    <td>{{ optional($order->user)->full_name ?? 'Guest' }}</td>
+                    <!-- Fetch the name of the user from the users table -->
+                    <td>{{ optional($order->user)->name ?? 'Guest' }}</td>
                     <td>{{ ucfirst($order->status) }}</td>
                     <td>
                         @if ($order->status !== 'processed')
