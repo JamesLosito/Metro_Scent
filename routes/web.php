@@ -96,6 +96,8 @@ Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct'])
 
 // Users
 Route::get('/admin/users', [AdminController::class, 'showUsers'])->middleware('auth')->name('admin.users');
+Route::post('/admin/users', [AdminController::class, 'storeUser'])->middleware('auth')->name('admin.users.store');
+Route::put('/admin/users/{id}', [AdminController::class, 'updateUser'])->middleware('auth')->name('admin.users.update');
 Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->middleware('auth')->name('admin.users.delete');
 
 // Orders

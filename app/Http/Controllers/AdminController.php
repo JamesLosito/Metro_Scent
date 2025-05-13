@@ -8,6 +8,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -189,5 +190,66 @@ class AdminController extends Controller
 
         return redirect()->route('admin.profile.show')
             ->with('success', 'Profile updated successfully.');
+    }
+
+    /**
+     * Store a new user
+     */
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        dd('Validation passed');
+        $isAdmin = $request->has('is_admin') ? true : false;
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'is_admin' => $isAdmin,
+        ]);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Update an existing user
+     */
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($id, 'user_id')
+            ],
+            'password' => 'nullable|string|min:8',
+            'is_admin' => 'boolean'
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'is_admin' => $request->boolean('is_admin')
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User updated successfully.');
     }
 }
