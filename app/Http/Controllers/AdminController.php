@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -21,28 +20,17 @@ class AdminController extends Controller
         // Basic counts
         $usersCount = User::count();
         $productsCount = Product::count();
+        $ordersPending = Order::where('status', 'pending')->count();
         
         // User distribution
         $adminUsersCount = User::where('is_admin', true)->count();
         $regularUsersCount = User::where('is_admin', false)->count();
         
-        // User growth over time (last 6 months)
-        $userGrowth = User::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-            
-        // User activity (last 30 days)
-        $activeUsers = Order::selectRaw('DATE(created_at) as date, COUNT(DISTINCT user_id) as count')
-            ->where('created_at', '>=', now()->subDays(30))
+        // Sales data (last 7 days)
+        $salesData = Order::where('status', 'processed')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-            
-        // Sales by product type
-        $salesByType = Product::selectRaw('type, COUNT(*) as total_sales')
-            ->groupBy('type')
             ->get();
             
         // Top selling products
@@ -54,76 +42,19 @@ class AdminController extends Controller
             ->orderBy('sales', 'desc')
             ->take(5)
             ->get();
-
-        // Inventory stock report
-        $lowStockProducts = Product::where('stock', '<', 10)
-            ->orderBy('stock', 'asc')
-            ->get();
             
-        $stockByType = Product::selectRaw('type, SUM(stock) as total_stock')
-            ->groupBy('type')
-            ->get();
-
-        // Enhanced Product Analytics
-        $productPerformance = Product::selectRaw('
-            type,
-            COUNT(*) as total_products,
-            AVG(price) as avg_price,
-            SUM(stock) as total_stock,
-            SUM(stock * price) as stock_value
-        ')
-        ->groupBy('type')
-        ->get();
-
-        // Stock Value Analysis
-        $stockValue = Product::selectRaw('
-            SUM(stock * price) as total_value,
-            AVG(price) as avg_price,
-            MAX(price) as max_price,
-            MIN(price) as min_price
-        ')
-        ->first();
-
-        // Product Category Insights
-        $categoryInsights = Product::selectRaw('
-            type,
-            COUNT(*) as product_count,
-            SUM(stock) as total_stock,
-            AVG(price) as avg_price,
-            SUM(stock * price) as inventory_value
-        ')
-        ->groupBy('type')
-        ->get();
-
-        // Stock Level Distribution
-        $stockLevels = Product::selectRaw('
-            CASE 
-                WHEN stock = 0 THEN "Out of Stock"
-                WHEN stock <= 5 THEN "Critical"
-                WHEN stock <= 10 THEN "Low"
-                WHEN stock <= 20 THEN "Medium"
-                ELSE "Good"
-            END as level,
-            COUNT(*) as count
-        ')
-        ->groupBy('level')
-        ->get();
+        // Total sales
+        $totalSales = Order::where('status', 'processed')->sum('total');
 
         return view('admin.dashboard', compact(
             'usersCount',
             'productsCount',
+            'ordersPending',
             'adminUsersCount',
             'regularUsersCount',
-            'userGrowth',
-            'activeUsers',
-            'salesByType',
+            'salesData',
             'topProducts',
-            'lowStockProducts',
-            'stockByType',
-            'productPerformance',
-            'stockValue',
-            'categoryInsights',
-            'stockLevels'
+            'totalSales'
         ));
     }
 
@@ -167,16 +98,14 @@ class AdminController extends Controller
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'type' => 'required|string|in:captivating,intense',
-                'stock' => 'required|integer|min:0'
+                'type' => 'required|string|in:captivating,intense'
             ]);
 
             $data = [
                 'name' => $request->name,
                 'price' => $request->price,
                 'description' => $request->description,
-                'type' => strtolower($request->type),
-                'stock' => $request->stock
+                'type' => strtolower($request->type)
             ];
             
             if ($request->hasFile('image')) {
@@ -215,12 +144,11 @@ class AdminController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'type' => 'required|string|in:captivating,intense',
-            'stock' => 'required|integer|min:0'
+            'type' => 'required|string|in:captivating,intense'
         ]);
 
         $product = Product::where('product_id', $id)->firstOrFail();
-        $data = $request->only('name', 'price', 'description', 'type', 'stock');
+        $data = $request->only('name', 'price', 'description', 'type');
         $data['type'] = strtolower($data['type']);
 
         if ($request->hasFile('image')) {
@@ -304,9 +232,6 @@ class AdminController extends Controller
         return redirect()->route('admin.orders')->with('error', 'Order not found.');
 
     }
-
-
-
 
     /**
      * Show the admin's profile
