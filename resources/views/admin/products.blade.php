@@ -321,7 +321,7 @@
                                     <div class="product-image-container" data-bs-toggle="modal" data-bs-target="#imagePreviewModal{{ $product->product_id }}">
                                         @php
                                             $type = strtolower($product->type);
-                                            $imagePath = $product->image ? 'storage/products/' . $type . '/' . $product->image : 'images/no-image.png';
+                                            $imagePath = $product->image ? 'images/products/' . $type . '/' . $product->image : 'images/no-image.png';
                                         @endphp
                                         <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-image" loading="lazy" onerror="handleImageError(this)">
                                     </div>
@@ -480,7 +480,7 @@
                                 <div class="mb-2">
                                     @php
                                         $type = strtolower($product->type);
-                                        $imagePath = $product->image ? 'storage/products/' . $type . '/' . $product->image : 'images/no-image.png';
+                                        $imagePath = $product->image ? 'images/products/' . $type . '/' . $product->image : 'images/no-image.png';
                                     @endphp
                                     <img src="{{ asset($imagePath) }}" 
                                          alt="{{ $product->name }}" 

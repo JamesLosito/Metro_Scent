@@ -215,7 +215,7 @@
                             $imagePath = 'storage/' . $product->image;
                         } else {
                             // Old style: just filename
-                            $imagePath = 'storage/products/' . strtolower($product->type) . '/' . $product->image;
+                            $imagePath = 'images/products/' . strtolower($product->type) . '/' . $product->image;
                         }
                     } else {
                         $imagePath = 'images/no-image.png';
