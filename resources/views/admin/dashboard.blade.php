@@ -140,25 +140,7 @@
     <div class="container-fluid mt-4">
         <div class="row">
             <!-- Summary Cards -->
-            <div class="col-xl-3 col-md-6 mb-4">
-                <a href="{{ route('admin.users') }}" class="text-decoration-none">
-                    <div class="card border-left-primary shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $usersCount }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-users fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
+            <div class="col-xl-6 col-md-6 mb-4">
                 <a href="{{ route('admin.products') }}" class="text-decoration-none">
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
@@ -176,35 +158,17 @@
                 </a>
             </div>
 
-            <div class="col-xl-3 col-md-6 mb-4">
-                <a href="{{ route('admin.orders') }}" class="text-decoration-none">
-                    <div class="card border-left-warning shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Orders</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $ordersPending }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <a href="{{ route('admin.orders') }}" class="text-decoration-none">
+            <div class="col-xl-6 col-md-6 mb-4">
+                <a href="{{ route('admin.users') }}" class="text-decoration-none">
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Sales</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($totalSales, 2) }}</div>
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Users</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $usersCount }}</div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
@@ -215,22 +179,8 @@
 
         <!-- Charts Row -->
         <div class="row">
-            <!-- Sales Chart -->
-            <div class="col-xl-8 col-lg-7">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="salesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- User Distribution Chart -->
-            <div class="col-xl-4 col-lg-5">
+            <div class="col-xl-6 col-lg-6">
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                         <h6 class="m-0 font-weight-bold text-primary">User Distribution</h6>
@@ -242,18 +192,201 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Sales by Product Type -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Sales by Product Type</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie">
+                            <canvas id="salesByTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Product Performance Chart -->
+        <!-- User Growth Chart -->
         <div class="row">
             <div class="col-xl-12">
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">User Growth (Last 6 Months)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="userGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Activity Chart -->
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">User Activity (Last 30 Days)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="userActivityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Stock Report -->
+        <div class="row">
+            <!-- Stock Value Summary -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Inventory Value</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($stockValue->total_value, 2) }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Average Product Price</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($stockValue->avg_price, 2) }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-tag fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Price Range</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($stockValue->min_price, 2) }} - ${{ number_format($stockValue->max_price, 2) }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Charts Row -->
+        <div class="row">
+            <!-- Stock Level Distribution -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Stock Level Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie">
+                            <canvas id="stockLevelChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Performance -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Category Performance</h6>
                     </div>
                     <div class="card-body">
                         <div class="chart-bar">
-                            <canvas id="productPerformanceChart"></canvas>
+                            <canvas id="categoryPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Insights Table -->
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Category Insights</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Products</th>
+                                        <th>Total Stock</th>
+                                        <th>Avg. Price</th>
+                                        <th>Inventory Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($categoryInsights as $category)
+                                    <tr>
+                                        <td>{{ ucfirst($category->type) }}</td>
+                                        <td>{{ $category->product_count }}</td>
+                                        <td>{{ $category->total_stock }}</td>
+                                        <td>${{ number_format($category->avg_price, 2) }}</td>
+                                        <td>${{ number_format($category->inventory_value, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products Table -->
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Type</th>
+                                        <th>Total Sales</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($topProducts as $product)
+                                    <tr>
+                                        <td>{{ $product->name }}</td>
+                                        <td>{{ ucfirst($product->type) }}</td>
+                                        <td>{{ $product->sales }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -267,54 +400,87 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    // Sales Chart
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: {!! json_encode($salesData->pluck('date')) !!},
-            datasets: [{
-                label: 'Sales',
-                data: {!! json_encode($salesData->pluck('amount')) !!},
-                borderColor: '#5d1d48',
-                backgroundColor: 'rgba(93, 29, 72, 0.1)',
-                tension: 0.1,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-
     // User Distribution Chart
-    const userCtx = document.getElementById('userDistributionChart').getContext('2d');
-    new Chart(userCtx, {
+    const userDistCtx = document.getElementById('userDistributionChart').getContext('2d');
+    new Chart(userDistCtx, {
         type: 'doughnut',
         data: {
             labels: ['Admin Users', 'Regular Users'],
             datasets: [{
                 data: [{{ $adminUsersCount }}, {{ $regularUsersCount }}],
                 backgroundColor: ['#5d1d48', '#1cc88a']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // User Growth Chart
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($userGrowth->pluck('month')) !!},
+            datasets: [{
+                label: 'New Users',
+                data: {!! json_encode($userGrowth->pluck('count')) !!},
+                borderColor: '#36b9cc',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Sales by Type Chart
+    const salesTypeCtx = document.getElementById('salesByTypeChart').getContext('2d');
+    new Chart(salesTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: {!! json_encode($salesByType->pluck('type')) !!},
+            datasets: [{
+                data: {!! json_encode($salesByType->pluck('total_sales')) !!},
+                backgroundColor: ['#5d1d48', '#1cc88a', '#f6c23e']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // User Activity Chart
+    const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+    new Chart(userActivityCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($activeUsers->pluck('date')) !!},
+            datasets: [{
+                label: 'Active Users',
+                data: {!! json_encode($activeUsers->pluck('count')) !!},
+                borderColor: '#f6c23e',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Stock Level Distribution Chart
+    const stockLevelCtx = document.getElementById('stockLevelChart').getContext('2d');
+    new Chart(stockLevelCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($stockLevels->pluck('level')) !!},
+            datasets: [{
+                data: {!! json_encode($stockLevels->pluck('count')) !!},
+                backgroundColor: ['#dc3545', '#ffc107', '#fd7e14', '#20c997', '#0dcaf0']
             }]
         },
         options: {
@@ -328,37 +494,33 @@
         }
     });
 
-    // Product Performance Chart
-    const productCtx = document.getElementById('productPerformanceChart').getContext('2d');
-    new Chart(productCtx, {
+    // Category Performance Chart
+    const categoryPerformanceCtx = document.getElementById('categoryPerformanceChart').getContext('2d');
+    new Chart(categoryPerformanceCtx, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($topProducts->pluck('name')) !!},
+            labels: {!! json_encode($productPerformance->pluck('type')) !!},
             datasets: [{
-                label: 'Sales',
-                data: {!! json_encode($topProducts->pluck('sales')) !!},
+                label: 'Total Products',
+                data: {!! json_encode($productPerformance->pluck('total_products')) !!},
                 backgroundColor: '#5d1d48'
+            }, {
+                label: 'Total Stock',
+                data: {!! json_encode($productPerformance->pluck('total_stock')) !!},
+                backgroundColor: '#1cc88a'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
                 }
             }
         }
