@@ -29,8 +29,29 @@
             font-size: 0.9rem;
             letter-spacing: 1px;
         }
+        /* Apply underline only to top-level nav links (not dropdown toggles) */
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle) {
+            position: relative;
+            color: #000;
+            transition: color 0.3s ease;
+        }
 
-        .page-title {
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle)::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 2px;
+            width: 0;
+            background-color: #5d1d48;
+            transition: width 0.3s ease;
+            transform-origin: center;
+        }
+
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle):hover::after {
+            width: 100%;
+        }        .page-title {
             font-family: 'Times New Roman', serif;
             font-size: 2.5rem;
             font-weight: 400;
