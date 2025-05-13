@@ -26,7 +26,14 @@ class AdminController extends Controller
      */
     public function showProducts()
     {
+        // Retrieve all products from the database
         $products = Product::all();
+
+        // Debugging step to ensure products are being fetched correctly
+        // If products are not showing, add this temporarily for debugging
+        // dd($products);
+
+        // Ensure that products are passed to the view
         return view('admin.products', compact('products'));
     }
 
@@ -41,6 +48,7 @@ class AdminController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        // Create new product
         Product::create($request->only('name', 'price', 'description'));
 
         return redirect()->back()->with('success', 'Product added successfully.');
@@ -57,6 +65,7 @@ class AdminController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        // Find and update the product
         $product = Product::findOrFail($id);
         $product->update($request->only('name', 'price', 'description'));
 
@@ -68,6 +77,7 @@ class AdminController extends Controller
      */
     public function deleteProduct($id)
     {
+        // Delete the product
         Product::destroy($id);
         return redirect()->back()->with('success', 'Product deleted.');
     }
@@ -83,12 +93,13 @@ class AdminController extends Controller
                     ->get();
 
         // Optionally filter further if necessary (e.g., instance of User)
-        $users = $users->filter(function ($users) {
-            return isset($users->id);
+        $users = $users->filter(function ($user) {
+            return isset($user->id);
         });
 
         return view('admin.users', compact('users'));
     }
+
     /**
      * Delete a user
      */
