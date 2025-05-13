@@ -63,14 +63,9 @@ class AdminController extends Controller
      */
     public function showProducts()
     {
-        // Retrieve all products from the database
-        $products = Product::all();
+        // Retrieve paginated products from the database
+        $products = Product::paginate(10); // Show 10 products per page
 
-        // Debugging step to ensure products are being fetched correctly
-        // If products are not showing, add this temporarily for debugging
-        // dd($products);
-
-        // Ensure that products are passed to the view
         return view('admin.products', compact('products'));
     }
 
@@ -142,12 +137,12 @@ class AdminController extends Controller
     }
 
     /**
-     * Show all users, separated into admin and regular users
+     * Show all users
      */
     public function showUsers()
     {
-        $adminUsers = User::where('is_admin', 1)->get();
-        $regularUsers = User::where('is_admin', 0)->get();
+        $adminUsers = User::where('is_admin', true)->paginate(10);
+        $regularUsers = User::where('is_admin', false)->paginate(10);
         return view('admin.users', compact('adminUsers', 'regularUsers'));
     }
 
@@ -231,24 +226,32 @@ class AdminController extends Controller
      */
     public function storeUser(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8',
+                'is_admin' => 'required|boolean'
+            ]);
 
-        dd('Validation passed');
-        $isAdmin = $request->has('is_admin') ? true : false;
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'is_admin' => $request->boolean('is_admin'),
+            ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'is_admin' => $isAdmin,
-        ]);
+            if ($user) {
+                return redirect()->route('admin.users')
+                    ->with('success', $request->boolean('is_admin') ? 'Admin user created successfully.' : 'Regular user created successfully.');
+            }
 
-        return redirect()->route('admin.users')
-            ->with('success', 'User created successfully.');
+            return redirect()->route('admin.users')
+                ->with('error', 'Failed to create user. Please try again.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.users')
+                ->with('error', 'Error creating user: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Metro Essence</title>
+    <title>Metro Essence - Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <style>
@@ -28,15 +28,58 @@
             font-size: 0.9rem;
             letter-spacing: 1px;
         }
-        .tag-btn {
-            font-size: 0.7rem;
-            padding: 5px 15px;
-            margin-top: 10px;
+        .card {
             border: none;
-            background-color: #5d1d48;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .border-left-primary {
+            border-left: 4px solid #5d1d48 !important;
+        }
+        .border-left-success {
+            border-left: 4px solid #1cc88a !important;
+        }
+        .border-left-warning {
+            border-left: 4px solid #f6c23e !important;
+        }
+        .border-left-info {
+            border-left: 4px solid #36b9cc !important;
+        }
+        .text-primary {
+            color: #5d1d48 !important;
+        }
+        .text-success {
+            color: #1cc88a !important;
+        }
+        .text-warning {
+            color: #f6c23e !important;
+        }
+        .text-info {
+            color: #36b9cc !important;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 1rem;
+        }
+        .chart-area {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .chart-pie {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .chart-bar {
+            position: relative;
+            height: 300px;
+            width: 100%;
         }
         footer {
             background-color: #f8f8f8;
@@ -233,13 +276,33 @@
             datasets: [{
                 label: 'Sales',
                 data: {!! json_encode($salesData->pluck('amount')) !!},
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
+                borderColor: '#5d1d48',
+                backgroundColor: 'rgba(93, 29, 72, 0.1)',
+                tension: 0.1,
+                fill: true
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
         }
     });
 
@@ -251,12 +314,17 @@
             labels: ['Admin Users', 'Regular Users'],
             datasets: [{
                 data: [{{ $adminUsersCount }}, {{ $regularUsersCount }}],
-                backgroundColor: ['#4e73df', '#1cc88a']
+                backgroundColor: ['#5d1d48', '#1cc88a']
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
         }
     });
 
@@ -269,15 +337,28 @@
             datasets: [{
                 label: 'Sales',
                 data: {!! json_encode($topProducts->pluck('sales')) !!},
-                backgroundColor: '#4e73df'
+                backgroundColor: '#5d1d48'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
                 }
             }
         }
