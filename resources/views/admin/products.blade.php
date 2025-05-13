@@ -76,7 +76,7 @@
 </head>
 <body>
 
-    @include('components.navbar')
+    @include('components.admin_navbar')
 
     <div class="container mt-4">
         <h1 class="mb-4">Product Management</h1>

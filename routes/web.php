@@ -86,22 +86,26 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 // Admin Dashboard
-Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+Route::get('/admin', [AdminController::class, 'dashboard'])->middleware('auth')->name('admin.dashboard');
 
 // Products
-Route::get('/admin/products', [AdminController::class, 'showProducts'])->name('admin.products');
-Route::post('/admin/products', [AdminController::class, 'storeProduct'])->name('admin.products.store');
-Route::put('/admin/products/{id}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
-Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct'])->name('admin.products.delete');
+Route::get('/admin/products', [AdminController::class, 'showProducts'])->middleware('auth')->name('admin.products');
+Route::post('/admin/products', [AdminController::class, 'storeProduct'])->middleware('auth')->name('admin.products.store');
+Route::put('/admin/products/{id}', [AdminController::class, 'updateProduct'])->middleware('auth')->name('admin.products.update');
+Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct'])->middleware('auth')->name('admin.products.delete');
 
 // Users
-Route::get('/admin/users', [AdminController::class, 'showUsers'])->name('admin.users');
-Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+Route::get('/admin/users', [AdminController::class, 'showUsers'])->middleware('auth')->name('admin.users');
+Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->middleware('auth')->name('admin.users.delete');
 
 // Orders
-Route::get('/admin/orders', [AdminController::class, 'showOrders'])->name('admin.orders');
-Route::post('/admin/orders/{id}/process', [AdminController::class, 'processOrder'])->name('admin.orders.process');
+Route::get('/admin/orders', [AdminController::class, 'showOrders'])->middleware('auth')->name('admin.orders');
+Route::post('/admin/orders/{id}/process', [AdminController::class, 'processOrder'])->middleware('auth')->name('admin.orders.process');
 
+// Admin Profile
+Route::get('/admin/profile', [AdminController::class, 'showProfile'])->middleware('auth')->name('admin.profile.show');
+Route::get('/admin/profile/edit', [AdminController::class, 'editProfile'])->middleware('auth')->name('admin.profile.edit');
+Route::put('/admin/profile/update', [AdminController::class, 'updateProfile'])->middleware('auth')->name('admin.profile.update');
 
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->middleware('guest')->name('login');
 Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('guest');

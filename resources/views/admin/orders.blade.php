@@ -1,4 +1,4 @@
-@extends('components.navbar')
+@include('components.admin_navbar')
 
 @section('content')
 <div class="container">

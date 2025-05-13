@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -83,21 +84,13 @@ class AdminController extends Controller
     }
 
     /**
-     * Show all non-admin users
+     * Show all users, separated into admin and regular users
      */
     public function showUsers()
     {
-        // Get all non-admin users with valid IDs only
-        $users = User::where('is_admin', '!=', '1')
-                    ->whereNotNull('user_id') // just in case
-                    ->get();
-
-        // Optionally filter further if necessary (e.g., instance of User)
-        $users = $users->filter(function ($user) {
-            return isset($user->id);
-        });
-
-        return view('admin.users', compact('users'));
+        $adminUsers = User::where('is_admin', 1)->get();
+        $regularUsers = User::where('is_admin', 0)->get();
+        return view('admin.users', compact('adminUsers', 'regularUsers'));
     }
 
     /**
@@ -128,5 +121,50 @@ class AdminController extends Controller
         $order->save();
 
         return redirect()->back()->with('success', 'Order marked as processed.');
+    }
+
+    /**
+     * Show the admin's profile
+     */
+    public function showProfile()
+    {
+        $user = Auth::user();
+        return view('admin.profile.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the admin's profile
+     */
+    public function editProfile()
+    {
+        $user = Auth::user();
+        return view('admin.profile.edit', compact('user'));
+    }
+
+    /**
+     * Update the admin's profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')
+            ],
+        ]);
+
+        User::where('user_id', $user->user_id)->update([
+            'name' => $request->name,
+            'email' => $request->email
+        ]);
+
+        return redirect()->route('admin.profile.show')
+            ->with('success', 'Profile updated successfully.');
     }
 }

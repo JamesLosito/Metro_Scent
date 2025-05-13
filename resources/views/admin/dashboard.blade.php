@@ -74,7 +74,7 @@
 </head>
 <body>
     
-  @include('components.navbar')
+  @include('components.admin_navbar')
 
     <!-- Login/Signup Modal -->
     <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
