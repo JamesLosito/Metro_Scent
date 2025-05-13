@@ -11,7 +11,7 @@
         <tbody>
             @foreach ($orders as $order)
             <tr>
-                <td>{{ $order->user->name }}</td>
+                <td>{{ $order->user->full_name }}</td>
                 <td>{{ $order->status }}</td>
                 <td>
                     @if ($order->status !== 'processed')
