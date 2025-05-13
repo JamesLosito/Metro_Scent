@@ -13,10 +13,15 @@ class Product extends Model
     {
         return $this->hasMany(CartItem::class);
     }
-    public function show($id)
-{
-    $product = Product::findOrFail($id);
-    return view('view_product', compact('product'));
-}
 
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'product_id', 'product_id');
+    }
+
+    public function show($id)
+    {
+        $product = Product::findOrFail($id);
+        return view('view_product', compact('product'));
+    }
 }

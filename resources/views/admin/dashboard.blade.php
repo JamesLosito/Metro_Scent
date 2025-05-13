@@ -94,30 +94,125 @@
     </div>
 
     <!-- Content Section -->
-    <div class="container mt-5">
-        <h1>Admin Dashboard</h1>
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card p-3" style="background-color: #ffe6eb;">
-                    <h5>Total Users</h5>
-                    <p class="display-4">{{ $usersCount }}</p>
-                    <a href="{{ route('admin.users') }}">Manage Users</a>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Summary Cards -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{{ route('admin.users') }}" class="text-decoration-none">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $usersCount }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{{ route('admin.products') }}" class="text-decoration-none">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Products</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $productsCount }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-box fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{{ route('admin.orders') }}" class="text-decoration-none">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Orders</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $ordersPending }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{{ route('admin.orders') }}" class="text-decoration-none">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Sales</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($totalSales, 2) }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Sales Chart -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card p-3" style="background-color: #e6f3ff;">
-                    <h5>Total Products</h5>
-                    <p class="display-4">{{ $productsCount }}</p>
-                    <a href="{{ route('admin.products') }}">Manage Products</a>
+            <!-- User Distribution Chart -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">User Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="userDistributionChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-4">
-                <div class="card p-3" style="background-color: #fff9e6;">
-                    <h5>Pending Orders</h5>
-                    <p class="display-4">{{ $ordersPending }}</p>
-                    <a href="{{ route('admin.orders') }}">Manage Orders</a>
+        <!-- Product Performance Chart -->
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-bar">
+                            <canvas id="productPerformanceChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,5 +222,66 @@
     @include('components.footer')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($salesData->pluck('date')) !!},
+            datasets: [{
+                label: 'Sales',
+                data: {!! json_encode($salesData->pluck('amount')) !!},
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // User Distribution Chart
+    const userCtx = document.getElementById('userDistributionChart').getContext('2d');
+    new Chart(userCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Admin Users', 'Regular Users'],
+            datasets: [{
+                data: [{{ $adminUsersCount }}, {{ $regularUsersCount }}],
+                backgroundColor: ['#4e73df', '#1cc88a']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Product Performance Chart
+    const productCtx = document.getElementById('productPerformanceChart').getContext('2d');
+    new Chart(productCtx, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($topProducts->pluck('name')) !!},
+            datasets: [{
+                label: 'Sales',
+                data: {!! json_encode($topProducts->pluck('sales')) !!},
+                backgroundColor: '#4e73df'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    </script>
 </body>
 </html>

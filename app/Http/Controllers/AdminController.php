@@ -17,11 +17,45 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        $usersCount    = User::count();
+        // Basic counts
+        $usersCount = User::count();
         $productsCount = Product::count();
         $ordersPending = Order::where('status', 'pending')->count();
+        
+        // User distribution
+        $adminUsersCount = User::where('is_admin', true)->count();
+        $regularUsersCount = User::where('is_admin', false)->count();
+        
+        // Sales data (last 7 days)
+        $salesData = Order::where('status', 'processed')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
+            ->groupBy('date')
+            ->get();
+            
+        // Top selling products
+        $topProducts = Product::withCount(['orderItems as sales' => function($query) {
+                $query->whereHas('order', function($q) {
+                    $q->where('status', 'processed');
+                });
+            }])
+            ->orderBy('sales', 'desc')
+            ->take(5)
+            ->get();
+            
+        // Total sales
+        $totalSales = Order::where('status', 'processed')->sum('total');
 
-        return view('admin.dashboard', compact('usersCount', 'productsCount', 'ordersPending'));
+        return view('admin.dashboard', compact(
+            'usersCount',
+            'productsCount',
+            'ordersPending',
+            'adminUsersCount',
+            'regularUsersCount',
+            'salesData',
+            'topProducts',
+            'totalSales'
+        ));
     }
 
     /**
