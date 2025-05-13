@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -47,10 +48,16 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Create new product
-        Product::create($request->only('name', 'price', 'description'));
+        $data = $request->only('name', 'price', 'description');
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        Product::create($data);
 
         return redirect()->back()->with('success', 'Product added successfully.');
     }
@@ -64,11 +71,21 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Find and update the product
-        $product = Product::findOrFail($id);
-        $product->update($request->only('name', 'price', 'description'));
+        $product = Product::where('product_id', $id)->firstOrFail();
+        $data = $request->only('name', 'price', 'description');
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
 
         return redirect()->back()->with('success', 'Product updated successfully.');
     }
@@ -78,8 +95,14 @@ class AdminController extends Controller
      */
     public function deleteProduct($id)
     {
-        // Delete the product
-        Product::destroy($id);
+        $product = Product::where('product_id', $id)->firstOrFail();
+        
+        // Delete product image if exists
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+        
+        $product->delete();
         return redirect()->back()->with('success', 'Product deleted.');
     }
 
