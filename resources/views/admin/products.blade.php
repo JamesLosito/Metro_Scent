@@ -45,6 +45,24 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Add New Product</h6>
@@ -128,6 +146,14 @@
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Select Type</option>
+                                <option value="captivating">Captivating</option>
+                                <option value="intense">Intense</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label for="image" class="form-label">Product Image</label>
                             <input type="file" class="form-control" id="image" name="image" accept="image/*">
                         </div>
@@ -165,6 +191,13 @@
                         <div class="mb-3">
                             <label for="edit_description{{ $product->product_id }}" class="form-label">Description</label>
                             <textarea class="form-control" id="edit_description{{ $product->product_id }}" name="description" rows="3">{{ $product->description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_type{{ $product->product_id }}" class="form-label">Type</label>
+                            <select class="form-select" id="edit_type{{ $product->product_id }}" name="type" required>
+                                <option value="captivating" {{ $product->type === 'captivating' ? 'selected' : '' }}>Captivating</option>
+                                <option value="intense" {{ $product->type === 'intense' ? 'selected' : '' }}>Intense</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="edit_image{{ $product->product_id }}" class="form-label">Product Image</label>

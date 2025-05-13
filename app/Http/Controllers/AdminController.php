@@ -74,22 +74,42 @@ class AdminController extends Controller
      */
     public function storeProduct(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'price' => 'required|numeric|min:0',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'type' => 'required|string|in:captivating,intense'
+            ]);
 
-        $data = $request->only('name', 'price', 'description');
-        
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+            $data = [
+                'name' => $request->name,
+                'price' => $request->price,
+                'description' => $request->description,
+                'type' => $request->type
+            ];
+            
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('products', 'public');
+            }
+
+            $product = Product::create($data);
+
+            if ($product) {
+                return redirect()->route('admin.products')->with('success', 'Product added successfully.');
+            }
+
+            return redirect()->route('admin.products')->with('error', 'Failed to add product. Please try again.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('error', 'Please check the form for errors.');
+        } catch (\Exception $e) {
+            Log::error('Product creation error: ' . $e->getMessage());
+            return redirect()->route('admin.products')->with('error', 'Error adding product: ' . $e->getMessage());
         }
-
-        Product::create($data);
-
-        return redirect()->back()->with('success', 'Product added successfully.');
     }
 
     /**
