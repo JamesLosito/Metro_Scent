@@ -26,10 +26,200 @@
         .table { border-radius: 10px; overflow: hidden; }
         .table thead th { background-color: #f8f9fa; border-bottom: 2px solid #eee; color: #5d1d48; font-weight: 600; }
         .table td { vertical-align: middle; }
-        .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
-        .modal-content { border: none; border-radius: 10px; }
-        .modal-header { background-color: #f8f9fa; border-bottom: 1px solid #eee; }
-        .modal-title { color: #5d1d48; font-weight: 600; }
+        
+        /* Type Filter Styles */
+        .type-filter {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .type-filter .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .type-filter .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .type-filter .btn.active {
+            background-color: #5d1d48;
+            color: white;
+            border-color: #5d1d48;
+        }
+        
+        .type-filter .btn:not(.active):hover {
+            background-color: #f0f0f0;
+        }
+        
+        /* Product Type Badge */
+        .type-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .type-badge.captivating {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .type-badge.intense {
+            background-color: #fce4ec;
+            color: #c2185b;
+        }
+        
+        /* Product Row Animation */
+        .product-row {
+            transition: all 0.3s ease;
+        }
+        
+        .product-row.hidden {
+            display: none;
+        }
+        
+        /* Product Image Styles */
+        .product-image-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .product-image-container:hover {
+            transform: scale(1.05);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        
+        .product-image:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Image Preview Modal */
+        .image-preview-modal .modal-dialog {
+            max-width: 90%;
+            margin: 1.75rem auto;
+        }
+        
+        .image-preview-modal .modal-content {
+            background-color: transparent;
+            border: none;
+        }
+        
+        .image-preview-modal .modal-body {
+            padding: 0;
+            text-align: center;
+        }
+        
+        .image-preview-modal img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .image-preview-modal .modal-header {
+            background-color: transparent;
+            border: none;
+            position: absolute;
+            right: 0;
+            z-index: 1;
+        }
+        
+        .image-preview-modal .btn-close {
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            padding: 0.5rem;
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+            margin: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #fff;
+            padding: 0.5rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .page-item {
+            display: inline-block;
+        }
+
+        .page-link {
+            color: #5d1d48;
+            border: 1px solid #e0e0e0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.75rem;
+            height: 1.75rem;
+            font-size: 0.875rem;
+            background: #fff;
+        }
+
+        .page-link i {
+            font-size: 0.75rem;
+        }
+
+        .page-link:hover {
+            background-color: #f8f9fa;
+            border-color: #5d1d48;
+            color: #5d1d48;
+            text-decoration: none;
+        }
+
+        .page-item.active .page-link {
+            background-color: #5d1d48;
+            border-color: #5d1d48;
+            color: white;
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #f8f9fa;
+            border-color: #e0e0e0;
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
     </style>
     <!-- Defer non-critical CSS -->
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}" media="print" onload="this.media='all'">
@@ -65,12 +255,38 @@
 
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Add New Product</h6>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="fas fa-plus"></i> Add Product
-                </button>
+                <h6 class="m-0 font-weight-bold text-primary">Product Management</h6>
+                <div>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
             </div>
             <div class="card-body">
+                <!-- Type Filter -->
+                <div class="type-filter">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Filter by Type:</h6>
+                        <div class="btn-group" role="group">
+                            <a href="{{ route('admin.products', ['type' => 'all']) }}" 
+                               class="btn btn-outline-primary {{ $type === 'all' ? 'active' : '' }}">
+                                <i class="fas fa-th-large me-1"></i> All Products
+                                <span class="badge bg-secondary ms-1">{{ $typeCounts['all'] }}</span>
+                            </a>
+                            <a href="{{ route('admin.products', ['type' => 'captivating']) }}" 
+                               class="btn btn-outline-primary {{ $type === 'captivating' ? 'active' : '' }}">
+                                <i class="fas fa-star me-1"></i> Captivating
+                                <span class="badge bg-secondary ms-1">{{ $typeCounts['captivating'] }}</span>
+                            </a>
+                            <a href="{{ route('admin.products', ['type' => 'intense']) }}" 
+                               class="btn btn-outline-primary {{ $type === 'intense' ? 'active' : '' }}">
+                                <i class="fas fa-fire me-1"></i> Intense
+                                <span class="badge bg-secondary ms-1">{{ $typeCounts['intense'] }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -78,23 +294,48 @@
                                 <th>ID</th>
                                 <th>Image</th>
                                 <th>Name</th>
+                                <th>Type</th>
                                 <th>Price</th>
                                 <th>Description</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($products as $product)
-                            <tr>
+                            @forelse($products as $product)
+                            <tr class="product-row">
                                 <td>{{ $product->product_id }}</td>
                                 <td>
-                                    @if($product->image)
-                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-image" loading="lazy" width="50" height="50">
-                                    @else
-                                        <img src="{{ asset('images/no-image.png') }}" alt="No image" class="product-image" loading="lazy" width="50" height="50">
-                                    @endif
+                                    <div class="product-image-container" data-bs-toggle="modal" data-bs-target="#imagePreviewModal{{ $product->product_id }}">
+                                        <img src="{{ $product->imageUrl }}" 
+                                             alt="{{ $product->name }}" 
+                                             class="product-image" 
+                                             loading="lazy"
+                                             onerror="handleImageError(this)">
+                                    </div>
+                                    
+                                    <!-- Image Preview Modal -->
+                                    <div class="modal fade image-preview-modal" id="imagePreviewModal{{ $product->product_id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <img src="{{ $product->imageUrl }}" 
+                                                         alt="{{ $product->name }}"
+                                                         loading="lazy"
+                                                         onerror="handleImageError(this)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>{{ $product->name }}</td>
+                                <td>
+                                    <span class="type-badge {{ $product->type }}">
+                                        {{ ucfirst($product->type) }}
+                                    </span>
+                                </td>
                                 <td>${{ number_format($product->price, 2) }}</td>
                                 <td>{{ Str::limit($product->description, 50) }}</td>
                                 <td>
@@ -110,13 +351,25 @@
                                     </form>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        No products found for this type.
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
                 <!-- Pagination -->
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $products->links() }}
+                <div class="d-flex flex-column align-items-center mt-4">
+                    {{ $products->appends(['type' => $type])->links() }}
+                    <div class="pagination-info">
+                        Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
+                    </div>
                 </div>
             </div>
         </div>
@@ -149,8 +402,8 @@
                             <label for="type" class="form-label">Type</label>
                             <select class="form-select" id="type" name="type" required>
                                 <option value="">Select Type</option>
-                                <option value="captivating">Captivating</option>
-                                <option value="intense">Intense</option>
+                                <option value="captivating" {{ old('type') === 'captivating' ? 'selected' : '' }}>Captivating</option>
+                                <option value="intense" {{ old('type') === 'intense' ? 'selected' : '' }}>Intense</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -203,7 +456,11 @@
                             <label for="edit_image{{ $product->product_id }}" class="form-label">Product Image</label>
                             @if($product->image)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-image" loading="lazy" width="50" height="50">
+                                    <img src="{{ $product->imageUrl }}" 
+                                         alt="{{ $product->name }}" 
+                                         class="product-image" 
+                                         loading="lazy"
+                                         onerror="handleImageError(this)">
                                 </div>
                             @endif
                             <input type="file" class="form-control" id="edit_image{{ $product->product_id }}" name="image" accept="image/*">
@@ -230,6 +487,73 @@
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Handle image loading errors
+            function handleImageError(img) {
+                img.onerror = null;
+                img.src = "{{ asset('images/no-image.png') }}";
+            }
+
+            // Add error handlers to all product images
+            document.querySelectorAll('.product-image').forEach(img => {
+                img.addEventListener('error', function() {
+                    handleImageError(this);
+                });
+            });
+        });
+
+        // Add JavaScript for type filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeButtons = document.querySelectorAll('[data-type]');
+            const productRows = document.querySelectorAll('.product-row');
+            let currentType = 'all';
+
+            function updateFilter(type) {
+                // Update active button
+                typeButtons.forEach(btn => {
+                    if (btn.dataset.type === type) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                // Update product rows - remove animation
+                productRows.forEach(row => {
+                    if (type === 'all' || row.dataset.type === type) {
+                        row.classList.remove('hidden');
+                        // Remove the visible class and animation
+                        // row.classList.add('visible');
+                    } else {
+                        row.classList.add('hidden');
+                        // row.classList.remove('visible');
+                    }
+                });
+
+                // Update current type
+                currentType = type;
+            }
+
+            // Add click handlers to filter buttons
+            typeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    updateFilter(this.dataset.type);
+                });
+            });
+
+            // Initialize image preview modals
+            const imageModals = document.querySelectorAll('.image-preview-modal');
+            imageModals.forEach(modal => {
+                modal.addEventListener('show.bs.modal', function() {
+                    const img = this.querySelector('img');
+                    if (img) {
+                        img.style.opacity = '0';
+                        setTimeout(() => {
+                            img.style.opacity = '1';
+                        }, 50);
+                    }
+                });
             });
         });
     </script>

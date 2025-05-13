@@ -61,12 +61,30 @@ class AdminController extends Controller
     /**
      * Show all products
      */
-    public function showProducts()
+    public function showProducts(Request $request)
     {
-        // Retrieve paginated products from the database
-        $products = Product::paginate(10); // Show 10 products per page
+        // Get the type filter from the request
+        $type = $request->get('type', 'all');
+        
+        // Base query
+        $query = Product::query();
+        
+        // Apply type filter if not 'all'
+        if ($type !== 'all') {
+            $query->where('type', $type);
+        }
+        
+        // Retrieve paginated products
+        $products = $query->orderBy('product_id', 'asc')->paginate(10);
+        
+        // Get counts for each type
+        $typeCounts = [
+            'all' => Product::count(),
+            'captivating' => Product::where('type', 'captivating')->count(),
+            'intense' => Product::where('type', 'intense')->count()
+        ];
 
-        return view('admin.products', compact('products'));
+        return view('admin.products', compact('products', 'typeCounts', 'type'));
     }
 
     /**
@@ -87,20 +105,23 @@ class AdminController extends Controller
                 'name' => $request->name,
                 'price' => $request->price,
                 'description' => $request->description,
-                'type' => $request->type
+                'type' => strtolower($request->type)
             ];
             
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('products', 'public');
+                $folder = 'products/' . $data['type'];
+                $data['image'] = $request->file('image')->store($folder, 'public');
             }
 
             $product = Product::create($data);
 
             if ($product) {
-                return redirect()->route('admin.products')->with('success', 'Product added successfully.');
+                return redirect()->route('admin.products', ['type' => $data['type']])
+                    ->with('success', 'Product added successfully.');
             }
 
-            return redirect()->route('admin.products')->with('error', 'Failed to add product. Please try again.');
+            return redirect()->route('admin.products')
+                ->with('error', 'Failed to add product. Please try again.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->withErrors($e->validator)
@@ -108,7 +129,8 @@ class AdminController extends Controller
                 ->with('error', 'Please check the form for errors.');
         } catch (\Exception $e) {
             Log::error('Product creation error: ' . $e->getMessage());
-            return redirect()->route('admin.products')->with('error', 'Error adding product: ' . $e->getMessage());
+            return redirect()->route('admin.products')
+                ->with('error', 'Error adding product: ' . $e->getMessage());
         }
     }
 
@@ -121,23 +143,28 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'type' => 'required|string|in:captivating,intense'
         ]);
 
         $product = Product::where('product_id', $id)->firstOrFail();
-        $data = $request->only('name', 'price', 'description');
+        $data = $request->only('name', 'price', 'description', 'type');
+        $data['type'] = strtolower($data['type']);
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
-            $data['image'] = $request->file('image')->store('products', 'public');
+            // Store new image in type-specific folder
+            $folder = 'products/' . $data['type'];
+            $data['image'] = $request->file('image')->store($folder, 'public');
         }
 
         $product->update($data);
 
-        return redirect()->back()->with('success', 'Product updated successfully.');
+        return redirect()->route('admin.products', ['type' => $data['type']])
+            ->with('success', 'Product updated successfully.');
     }
 
     /**
