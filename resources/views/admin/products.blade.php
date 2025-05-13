@@ -1,230 +1,165 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Product Management</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.admin')
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Times New Roman', serif;
-            background-color: #fff;
-            color: #333;
-        }
-        .navbar {
-            background-color: #fff;
-            border-bottom: 1px solid #eee;
-            padding: 15px 0;
-        }
-        .navbar-brand {
-            font-family: 'Times New Roman', serif;
-            font-weight: 300;
-            letter-spacing: 2px;
-            color: #5d1d48 !important;
-        }
-        .nav-link {
-            color: #5d1d48 !important;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-        }
-        .tag-btn {
-            font-size: 0.7rem;
-            padding: 5px 15px;
-            margin-top: 10px;
-            border: none;
-            background-color: #5d1d48;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        footer {
-            background-color: #f8f8f8;
-            padding: 30px 0;
-            margin-top: 50px;
-            border-top: 1px solid #eee;
-        }
-        .footer-links {
-            list-style: none;
-            padding: 0;
-        }
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-        .footer-links a {
-            color: #5d1d48;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .social-icons {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .social-icons li {
-            margin: 0 10px;
-        }
-        .social-icons a {
-            color: #5d1d48;
-            font-size: 1.2rem;
-        }
-    </style>
-</head>
-<body>
-
-    @include('components.admin_navbar')
-
+@section('content')
     <div class="container mt-4">
-        <h1 class="mb-4">Product Management</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Product Management</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus me-2"></i>Add New Product
+        </button>
+    </div>
 
-        {{-- Success message --}}
         @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        {{-- Add New Product Form --}}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Add New Product</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ route('admin.products.store') }}">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Product Name</label>
-                        <input 
-                          type="text" 
-                          name="name" 
-                          id="name" 
-                          class="form-control" 
-                          placeholder="Enter product name" 
-                          required
-                        >
-                    </div>
-                    <div class="mb-3">
-                        <label for="price" class="form-label">Price</label>
-                        <input 
-                          type="number" 
-                          name="price" 
-                          id="price" 
-                          class="form-control" 
-                          placeholder="0.00" 
-                          step="0.01" 
-                          required
-                        >
-                    </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea 
-                          name="description" 
-                          id="description" 
-                          class="form-control" 
-                          rows="3" 
-                          placeholder="Enter a short description"
-                        ></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Product</button>
-                </form>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+    @endif
 
-        {{-- Existing Products Table --}}
-        <div class="card">
-            <div class="card-header">
-                <h5>Existing Products</h5>
-            </div>
+    {{-- Products List --}}
+    <div class="card shadow-sm">
             <div class="card-body p-0">
-                <table class="table table-bordered mb-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
+                            <th class="px-4">ID</th>
+                            <th>Image</th>
                             <th>Name</th>
                             <th>Price</th>
                             <th>Description</th>
-                            <th style="width: 200px;">Actions</th>
+                            <th class="text-end px-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($products as $product)
-                            @if ($product->id)
                             <tr>
-                                <form 
-                                  method="POST" 
-                                  action="{{ route('admin.products.update', ['id' => $product->id]) }}"
-                                  class="d-flex"
-                                >
-                                    @csrf
-                                    @method('PUT')
-                                    <td style="width: 25%">
-                                        <input 
-                                          type="text" 
-                                          name="name" 
-                                          class="form-control" 
-                                          value="{{ $product->name }}"
-                                        >
-                                    </td>
-                                    <td style="width: 15%">
-                                        <input 
-                                          type="number" 
-                                          name="price" 
-                                          class="form-control" 
-                                          value="{{ $product->price }}" 
-                                          step="0.01"
-                                        >
-                                    </td>
-                                    <td style="width: 40%">
-                                        <textarea 
-                                          name="description" 
-                                          class="form-control" 
-                                          rows="2"
-                                        >{{ $product->description }}</textarea>
-                                    </td>
-                                    <td class="d-flex justify-content-between align-items-center">
-                                        <button 
-                                          type="submit" 
-                                          class="btn btn-sm btn-success me-2"
-                                        >
-                                          Update
-                                        </button>
-                                </form>
-                                <form 
-                                  method="POST" 
-                                  action="{{ route('admin.products.delete', ['id' => $product->id]) }}"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button 
-                                      type="submit" 
-                                      class="btn btn-sm btn-danger"
-                                      onclick="return confirm('Delete this product?')"
-                                    >
-                                      Delete
+                                <td class="px-4">{{ $product->product_id }}</td>
+                                <td>
+                                    @if($product->image)
+                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                    @else
+                                        <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>{{ $product->name }}</td>
+                                <td>₱{{ number_format($product->price, 2) }}</td>
+                                <td>{{ Str::limit($product->description, 50) }}</td>
+                                <td class="text-end px-4">
+                                    <button class="btn btn-sm btn-outline-primary me-2" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editProductModal{{ $product->product_id }}">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                </form>
-                                    </td>
+                                    <form method="POST" 
+                                          action="{{ route('admin.products.delete', ['id' => $product->product_id]) }}" 
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
-                            @endif
+
+                            {{-- Edit Product Modal --}}
+                            <div class="modal fade" id="editProductModal{{ $product->product_id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Product</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ route('admin.products.update', ['id' => $product->product_id]) }}" enctype="multipart/form-data">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Product Name</label>
+                                                    <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Price</label>
+                                                    <input type="number" name="price" class="form-control" value="{{ $product->price }}" step="0.01" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea name="description" class="form-control" rows="3">{{ $product->description }}</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Product Image</label>
+                                                    @if($product->image)
+                                                        <div class="mb-2">
+                                                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-thumbnail" style="max-width: 200px;">
+                                                        </div>
+                                                    @endif
+                                                    <input type="file" name="image" class="form-control" accept="image/*">
+                                                    <small class="text-muted">Leave empty to keep current image</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-3">
-                                    No products found.
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-box-open fa-2x mb-3"></i>
+                                        <p class="mb-0">No products found.</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+            </div>
         </div>
     </div>
 
-    @include('components.footer')
-
-    <!-- Bootstrap Bundle JS (optional, for navbars/modals) -->
-    <script 
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-    ></script>
-</body>
-</html>
+{{-- Add Product Modal --}}
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ route('admin.products.store') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Price</label>
+                        <input type="number" name="price" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Product Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

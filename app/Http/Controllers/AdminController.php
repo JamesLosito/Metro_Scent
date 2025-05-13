@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -15,11 +17,45 @@ class AdminController extends Controller
      */
     public function dashboard()
     {
-        $usersCount    = User::count();
+        // Basic counts
+        $usersCount = User::count();
         $productsCount = Product::count();
         $ordersPending = Order::where('status', 'pending')->count();
+        
+        // User distribution
+        $adminUsersCount = User::where('is_admin', true)->count();
+        $regularUsersCount = User::where('is_admin', false)->count();
+        
+        // Sales data (last 7 days)
+        $salesData = Order::where('status', 'processed')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
+            ->groupBy('date')
+            ->get();
+            
+        // Top selling products
+        $topProducts = Product::withCount(['orderItems as sales' => function($query) {
+                $query->whereHas('order', function($q) {
+                    $q->where('status', 'processed');
+                });
+            }])
+            ->orderBy('sales', 'desc')
+            ->take(5)
+            ->get();
+            
+        // Total sales
+        $totalSales = Order::where('status', 'processed')->sum('total');
 
-        return view('admin.dashboard', compact('usersCount', 'productsCount', 'ordersPending'));
+        return view('admin.dashboard', compact(
+            'usersCount',
+            'productsCount',
+            'ordersPending',
+            'adminUsersCount',
+            'regularUsersCount',
+            'salesData',
+            'topProducts',
+            'totalSales'
+        ));
     }
 
     /**
@@ -47,10 +83,16 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Create new product
-        Product::create($request->only('name', 'price', 'description'));
+        $data = $request->only('name', 'price', 'description');
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        Product::create($data);
 
         return redirect()->back()->with('success', 'Product added successfully.');
     }
@@ -64,11 +106,21 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Find and update the product
-        $product = Product::findOrFail($id);
-        $product->update($request->only('name', 'price', 'description'));
+        $product = Product::where('product_id', $id)->firstOrFail();
+        $data = $request->only('name', 'price', 'description');
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
 
         return redirect()->back()->with('success', 'Product updated successfully.');
     }
@@ -78,8 +130,14 @@ class AdminController extends Controller
      */
     public function deleteProduct($id)
     {
-        // Delete the product
-        Product::destroy($id);
+        $product = Product::where('product_id', $id)->firstOrFail();
+        
+        // Delete product image if exists
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+        
+        $product->delete();
         return redirect()->back()->with('success', 'Product deleted.');
     }
 
@@ -166,5 +224,66 @@ class AdminController extends Controller
 
         return redirect()->route('admin.profile.show')
             ->with('success', 'Profile updated successfully.');
+    }
+
+    /**
+     * Store a new user
+     */
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        dd('Validation passed');
+        $isAdmin = $request->has('is_admin') ? true : false;
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'is_admin' => $isAdmin,
+        ]);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Update an existing user
+     */
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($id, 'user_id')
+            ],
+            'password' => 'nullable|string|min:8',
+            'is_admin' => 'boolean'
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'is_admin' => $request->boolean('is_admin')
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User updated successfully.');
     }
 }
