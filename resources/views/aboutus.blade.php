@@ -268,7 +268,7 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <h3 class="team-name">Lance Gabriele Manzanillio</h3>
-                        <p class="team-position">Founder & Perfumer</p>
+                        <p class="team-position">Backend</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">

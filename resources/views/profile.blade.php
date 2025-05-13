@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>My Account</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <style>
         body {
             font-family: 'Georgia', serif;
@@ -62,6 +63,29 @@
             color: #5d1d48 !important;
             font-size: 0.9rem;
             letter-spacing: 1px;
+        }
+        /* Apply underline only to top-level nav links (not dropdown toggles) */
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle) {
+            position: relative;
+            color: #000;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle)::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 2px;
+            width: 0;
+            background-color: #5d1d48;
+            transition: width 0.3s ease;
+            transform-origin: center;
+        }
+
+        .navbar-nav > .nav-item > .nav-link:not(.dropdown-toggle):hover::after {
+            width: 100%;
         }
         .tag-btn {
             font-size: 0.7rem;
@@ -166,6 +190,9 @@
         </div>
     </div>
 </div>
+
 @include('components.footer')
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
