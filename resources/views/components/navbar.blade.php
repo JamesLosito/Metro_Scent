@@ -46,6 +46,7 @@
                                         @csrf
                                     </form>
                                 </li>
+                                <li><a class="dropdown-item" href="{{ route('orders.my') }}">My Orders</a></li>
                             </ul>
                         </li>
 

@@ -28,4 +28,8 @@ class User extends Authenticatable
     ];
 
     protected $primaryKey = 'user_id';
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }
