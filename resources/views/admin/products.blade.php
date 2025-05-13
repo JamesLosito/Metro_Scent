@@ -308,6 +308,7 @@
                                 <th>Name</th>
                                 <th>Type</th>
                                 <th>Price</th>
+                                <th>Stock</th>
                                 <th>Description</th>
                                 <th>Actions</th>
                             </tr>
@@ -349,6 +350,7 @@
                                     </span>
                                 </td>
                                 <td>${{ number_format($product->price, 2) }}</td>
+                                <td>{{ $product->stock }}</td>
                                 <td>{{ Str::limit($product->description, 50) }}</td>
                                 <td>
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal{{ $product->product_id }}">
@@ -407,6 +409,10 @@
                             <input type="number" class="form-control" id="price" name="price" step="0.01" required>
                         </div>
                         <div class="mb-3">
+                            <label for="stock" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="stock" name="stock" min="0" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
@@ -452,6 +458,10 @@
                         <div class="mb-3">
                             <label for="edit_price{{ $product->product_id }}" class="form-label">Price</label>
                             <input type="number" class="form-control" id="edit_price{{ $product->product_id }}" name="price" step="0.01" value="{{ $product->price }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_stock{{ $product->product_id }}" class="form-label">Stock</label>
+                            <input type="number" class="form-control" id="edit_stock{{ $product->product_id }}" name="stock" min="0" value="{{ $product->stock }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_description{{ $product->product_id }}" class="form-label">Description</label>

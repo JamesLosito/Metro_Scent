@@ -98,14 +98,16 @@ class AdminController extends Controller
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'type' => 'required|string|in:captivating,intense'
+                'type' => 'required|string|in:captivating,intense',
+                'stock' => 'required|integer|min:0'
             ]);
 
             $data = [
                 'name' => $request->name,
                 'price' => $request->price,
                 'description' => $request->description,
-                'type' => strtolower($request->type)
+                'type' => strtolower($request->type),
+                'stock' => $request->stock
             ];
             
             if ($request->hasFile('image')) {
@@ -144,11 +146,12 @@ class AdminController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'type' => 'required|string|in:captivating,intense'
+            'type' => 'required|string|in:captivating,intense',
+            'stock' => 'required|integer|min:0'
         ]);
 
         $product = Product::where('product_id', $id)->firstOrFail();
-        $data = $request->only('name', 'price', 'description', 'type');
+        $data = $request->only('name', 'price', 'description', 'type', 'stock');
         $data['type'] = strtolower($data['type']);
 
         if ($request->hasFile('image')) {
