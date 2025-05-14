@@ -15,34 +15,35 @@
 @endphp
 
 <div class="col-md-4">
-    <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
-        <div class="product-card position-relative">
+    <div class="product-card position-relative text-center p-3">
+        <a href="{{ route('product.show', $product->product_id) }}" style="text-decoration: none; color: inherit; display: block;">
             @if((!empty($showBestSellerBadge) && $showBestSellerBadge) || (!empty($product->is_bestseller) && $product->is_bestseller))
                 <span class="best-seller-badge">Best Seller</span>
             @endif
-            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/no-image.png') }}';">
-            <h5 class="mt-3">{{ $product->name }}</h5>
+            <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="product-img mb-2" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/no-image.png') }}';">
+            <h5 class="mt-2">{{ $product->name }}</h5>
             <h6 class="text-muted">₱{{ number_format($product->price, 2) }}</h6>
             <p>{{ $product->description }}</p>
             <div class="stock-status {{ $isOutOfStock ? 'text-danger' : 'text-success' }}">
                 {{ $isOutOfStock ? 'Out of Stock' : 'In Stock: ' . $product->stock }}
             </div>
-        </div>
-    </a>
-    @auth
-        <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form mt-2">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->product_id }}">
-            <input type="hidden" name="product_name" value="{{ $product->name }}">
-            <input type="hidden" name="product_stock" value="{{ $product->stock }}">
-            <input type="hidden" name="quantity" value="1">
-            <button type="submit" class="btn btn-primary mt-3" {{ $isOutOfStock ? 'disabled' : '' }}>
-                {{ $isOutOfStock ? 'Out of Stock' : 'Add to Cart' }}
-            </button>
-        </form>
-    @else
-        <a href="{{ url('/login') }}" class="btn btn-primary mt-3">Add to Cart</a>
-    @endauth
+        </a>
+
+        @auth
+            @if(!$isOutOfStock)
+                <form method="POST" action="{{ url('/cart/add') }}" class="add-to-cart-form mt-3">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+                    <input type="hidden" name="product_name" value="{{ $product->name }}">
+                    <input type="hidden" name="product_stock" value="{{ $product->stock }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-sm btn-primary">Add to Cart</button>
+                </form>
+            @endif
+        @else
+            <a href="{{ url('/login') }}" class="btn btn-sm btn-primary mt-3">Add to Cart</a>
+        @endauth
+    </div>
 </div>
 
 <!-- Success Notification Popup -->

@@ -246,7 +246,7 @@
                         @endif
                     </td>
                     <td>{{ ucfirst($order->payment_method) }}</td>
-                    <td>${{ number_format($order->total, 2) }}</td>
+                    <td>₱{{ number_format($order->total, 2) }}</td>
                     <td>{{ $order->created_at->format('M d, Y H:i') }}</td>
                     <td>
                         @if ($order->delivery_date)
@@ -310,7 +310,7 @@
                                         <p><strong>Customer:</strong> {{ optional($order->user)->name ?? 'Guest' }}</p>
                                         <p><strong>Email:</strong> {{ $order->email }}</p>
                                         <p><strong>Address:</strong> {{ $order->address }}</p>
-                                        <p><strong>Total Amount:</strong> ${{ number_format($order->total, 2) }}</p>
+                                        <p><strong>Total Amount:</strong> ₱{{ number_format($order->total, 2) }}</p>
                                     </div>
 
                                     <div class="mb-3">
@@ -370,7 +370,7 @@
                             <div class="modal-body">
                                 <p>Are you sure you want to cancel this order?</p>
                                 <p><strong>Customer:</strong> {{ optional($order->user)->name ?? 'Guest' }}</p>
-                                <p><strong>Total Amount:</strong> ${{ number_format($order->total, 2) }}</p>
+                                <p><strong>Total Amount:</strong> ₱{{ number_format($order->total, 2) }}</p>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
