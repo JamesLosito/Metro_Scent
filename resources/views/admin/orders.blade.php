@@ -137,15 +137,25 @@
                                 N/A
                             @endif
                         <td>
-                        @if ($order->status !== 'waiting for carrier')
-                            <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
-                                @csrf
-                                @method('POST')
-                                <button type="submit" class="btn btn-success">Process Order</button>
-                            </form>
-                        @else
-                            <span class="text-success">Waiting for Carrier</span>
-                        @endif
+                        @if ($order->status === 'pending')
+                        {{-- Show "Process Order" for pending orders --}}
+                        <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-success mb-2">Process Order</button>
+                        </form>
+                    @elseif ($order->status === 'processing')
+                        {{-- Show "Mark as In Transit" for processed orders --}}
+                        <form action="{{ route('admin.orders.intransit', ['id' => $order->id]) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning">Mark as In Transit</button>
+                        </form>
+                    @elseif ($order->status === 'intransit')
+                        <span class="text-primary">In Transit</span>
+                    @elseif ($order->status === 'waiting for carrier')
+                        <span class="text-success">Waiting for Carrier</span>
+                    @else
+                        <span class="text-muted">{{ ucfirst($order->status) }}</span>
+                    @endif
                     </td>
                 </tr>
             @empty

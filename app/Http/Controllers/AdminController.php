@@ -220,7 +220,7 @@ class AdminController extends Controller
 
         if ($order) {
             // Update order status and set delivery date
-            $order->status = 'processed';
+            $order->status = 'processing';
             $order->delivery_date = now(); // You can change this to a specific date logic if needed
             $order->save();
 
@@ -346,4 +346,17 @@ class AdminController extends Controller
         return redirect()->route('admin.users')
             ->with('success', 'User updated successfully.');
     }
+    public function markInTransit($id)
+{
+    $order = Order::findOrFail($id);
+
+    if ($order->status === 'processing') {
+        $order->status = 'intransit';
+        $order->save();
+
+        return redirect()->back()->with('success', 'Order marked as In Transit.');
+    }
+
+    return redirect()->back()->with('error', 'Only processed orders can be marked as In Transit.');
+}
 }
