@@ -19,5 +19,18 @@ class OrderController extends Controller
         $order = Order::with('orderItems.product')->where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         return view('orders.details', compact('order'));
     }
+    public function cancel($id)
+    {
+        $order = Order::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        if (in_array($order->status, ['pending', 'processing'])) {
+            $order->status = 'cancelled';
+            $order->save();
+
+            return redirect()->back()->with('success', 'Order cancelled successfully.');
+        }
+
+        return redirect()->back()->with('error', 'This order cannot be cancelled.');
+    }
 
 }

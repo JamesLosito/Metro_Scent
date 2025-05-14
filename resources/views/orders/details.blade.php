@@ -67,6 +67,7 @@
 </head>
 <body>
 @include('components.navbar')
+
 {{-- Order Details Content --}}
 <div class="container mt-5">
     <h3>Order Details</h3>
@@ -82,6 +83,17 @@
             <p><strong>Address:</strong> {{ $order->address }}</p>
             <p><strong>Payment Method:</strong> {{ ucfirst($order->payment_method) }}</p>
             <p><strong>Total Amount:</strong> ₱{{ number_format($order->total, 2) }}</p>
+
+            {{-- Cancel Order Button --}}
+            @if($order->status !== 'cancelled' && $order->status !== 'completed')
+                <form action="{{ route('orders.cancel', $order->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                    @csrf
+                    <button type="submit" class="btn btn-danger mt-3">Cancel Order</button>
+                </form>
+            @elseif($order->status === 'cancelled')
+                <div class="alert alert-warning mt-3">This order has been cancelled.</div>
+            @endif
+
         </div>
     </div>
 

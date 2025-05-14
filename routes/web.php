@@ -155,4 +155,6 @@ Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->middl
 Route::middleware('auth')->group(function () {
     Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('orders.my');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.details');
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
 });
