@@ -166,6 +166,9 @@ class AdminController extends Controller
             ->get();
         $outOfStockProducts = Product::where('stock', '<=', 0)
             ->get();
+            
+        // Total sales
+        $totalSales = Order::where('status', 'processed')->sum('total');
 
         return view('admin.dashboard', compact(
             'usersCount',
@@ -344,107 +347,23 @@ class AdminController extends Controller
     /**
      * Mark an order as processed
      */
-    public function processOrder(Request $request, $orderId)
+    public function processOrder($orderId)
     {
-        try {
-            $request->validate([
-                'delivery_date' => 'required|date|after_or_equal:today',
-                'notes' => 'nullable|string|max:500'
-            ]);
+        $order = Order::find($orderId);
 
-            $order = Order::with('orderItems.product')->findOrFail($orderId);
-
-            // Check if order can be processed
-            if ($order->status === 'processed' && $order->payment_method === 'gcash') {
-                return redirect()->route('admin.orders')
-                    ->with('error', 'GCash order #' . $orderId . ' is already processed.');
-            }
-
-            if ($order->status === 'delivered' && $order->payment_method === 'cod') {
-                return redirect()->route('admin.orders')
-                    ->with('error', 'COD order #' . $orderId . ' is already delivered.');
-            }
-
-            if ($order->status === 'cancelled') {
-                return redirect()->route('admin.orders')
-                    ->with('error', 'Cannot process a cancelled order.');
-            }
-
-            // Check if all products are in stock
-            foreach ($order->orderItems as $item) {
-                if ($item->product->stock < $item->quantity) {
-                    return redirect()->route('admin.orders')
-                        ->with('error', 'Insufficient stock for product: ' . $item->product->name);
-                }
-            }
-
-            // Start transaction to ensure data consistency
-            DB::beginTransaction();
-            try {
-                // Update order status and details based on payment method
-                if ($order->payment_method === 'cod') {
-                    $order->status = 'processed';
-                    $order->processed_at = now();
-                } elseif ($order->payment_method === 'gcash') {
-                    $order->status = 'processed';
-                    $order->processed_at = now();
-                }
-                // Stripe: do not change status
-
-                $order->delivery_date = $request->delivery_date;
-                $order->processing_notes = $request->notes;
-                $order->save();
-
-                // Update product stock
-                foreach ($order->orderItems as $item) {
-                    $product = $item->product;
-                    $product->stock -= $item->quantity;
-                    $product->save();
-                }
-
-                DB::commit();
-
-                $statusMessage = $order->payment_method === 'cod' ? 'processed' : 'processed';
-                return redirect()->route('admin.orders')
-                    ->with('success', 'Order #' . $orderId . ' has been ' . $statusMessage . ' successfully!');
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-        } catch (\Exception $e) {
-            return redirect()->route('admin.orders')
-                ->with('error', 'Failed to process order: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Cancel an order
-     */
-    public function cancelOrder($orderId)
-    {
-        try {
-            $order = Order::findOrFail($orderId);
-
-            if ($order->status === 'processed') {
-                return redirect()->route('admin.orders')
-                    ->with('error', 'Cannot cancel a processed order.');
-            }
-
-            if ($order->status === 'cancelled') {
-                return redirect()->route('admin.orders')
-                    ->with('error', 'Order is already cancelled.');
-            }
-
-            $order->status = 'cancelled';
-            $order->cancelled_at = now();
+        if ($order) {
+            // Update order status and set delivery date
+            $order->status = 'processed';
+            $order->delivery_date = now(); // You can change this to a specific date logic if needed
             $order->save();
 
-            return redirect()->route('admin.orders')
-                ->with('success', 'Order #' . $orderId . ' has been cancelled.');
-        } catch (\Exception $e) {
-            return redirect()->route('admin.orders')
-                ->with('error', 'Failed to cancel order: ' . $e->getMessage());
+            // Redirect back to orders.blade.php with a success message
+            return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
         }
+
+        // Redirect if order not found
+        return redirect()->route('admin.orders')->with('error', 'Order not found.');
+
     }
 
     /**
@@ -560,4 +479,29 @@ class AdminController extends Controller
         return redirect()->route('admin.users')
             ->with('success', 'User updated successfully.');
     }
+    public function markInTransit($id)
+    {
+        $order = Order::findOrFail($id);
+
+        if ($order->status === 'processing') {
+            $order->status = 'intransit';
+            $order->save();
+
+            return redirect()->back()->with('success', 'Order marked as In Transit.');
+        }
+
+        return redirect()->back()->with('error', 'Only processed orders can be marked as In Transit.');
+    }
+    public function markDelivered($id)
+    {
+        $order = Order::findOrFail($id);
+        if ($order->status === 'intransit') {
+            $order->status = 'delivered';
+            $order->delivery_date = now(); // Optional
+            $order->save();
+            return redirect()->back()->with('success', 'Order marked as Delivered.');
+        }
+        return redirect()->back()->with('error', 'Only in-transit orders can be marked as delivered.');
+    }
+
 }
