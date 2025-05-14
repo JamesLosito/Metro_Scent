@@ -238,7 +238,7 @@
             <div class="bestseller-product">
                 <img src="{{ asset('images/INTENSE/p'.($index+2).'.png') }}" class="product-img" alt="{{ $name }}">
                 <h3 class="product-name">{{ $name }}</h3>
-                <p class="product-price">${{ 75 + ($index * 5) }}.00</p>
+                <p class="product-price">₱{{ 1000 + ($index * 5) }}.00</p>
                 <a href="/perfumes" class="tag-btn">SHOP NOW</a>
             </div>
             @endforeach
