@@ -85,7 +85,7 @@
             <p><strong>Total Amount:</strong> ₱{{ number_format($order->total, 2) }}</p>
 
             {{-- Cancel Order Button --}}
-            @if($order->status !== 'cancelled' && $order->status !== 'completed')
+            @if(!in_array($order->status, ['cancelled', 'completed', 'intransit', 'delivered']))
                 <form action="{{ route('orders.cancel', $order->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
                     @csrf
                     <button type="submit" class="btn btn-danger mt-3">Cancel Order</button>

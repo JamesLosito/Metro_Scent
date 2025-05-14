@@ -327,15 +327,6 @@
                                         </ul>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="delivery_date{{ $order->id }}" class="form-label">Delivery Date</label>
-                                        <input type="date" 
-                                               class="form-control" 
-                                               id="delivery_date{{ $order->id }}" 
-                                               name="delivery_date" 
-                                               value="{{ date('Y-m-d') }}"
-                                               min="{{ date('Y-m-d') }}">
-                                    </div>
 
                                     <div class="mb-3">
                                         <label for="notes{{ $order->id }}" class="form-label">Processing Notes (Optional)</label>
