@@ -228,22 +228,46 @@
                 <tr>
                     <td>#{{ $order->id }}</td>
                     <td>{{ optional($order->user)->name ?? 'Guest' }}</td>
-                    <td>{{ ucfirst($order->status) }}</td>
-                        <td>
-                            @if ($order->delivery_date)
-                                {{ \Carbon\Carbon::parse($order->delivery_date)->format('M d, Y') }}
-                            @else
-                                N/A
-                            @endif
-                        <td>
-                        @if ($order->status !== 'waiting for carrier')
+                    <td>
+                        @if($order->status === 'cancelled')
+                            <span class="status-badge status-cancelled">Cancelled</span>
+                        @elseif($order->status === 'delivered')
+                            <span class="status-badge status-processed">Delivered</span>
+                        @elseif($order->status === 'processed')
+                            <span class="status-badge status-processed">Processed</span>
+                        @elseif($order->status === 'paid')
+                            <span class="status-badge status-paid">Paid</span>
+                        @elseif($order->status === 'pending')
+                            <span class="status-badge status-pending">Pending</span>
+                        @else
+                            <span class="status-badge status-pending">{{ ucfirst($order->status) }}</span>
+                        @endif
+                    </td>
+                    <td>{{ ucfirst($order->payment_method) }}</td>
+                    <td>${{ number_format($order->total, 2) }}</td>
+                    <td>{{ $order->created_at->format('M d, Y H:i') }}</td>
+                    <td>
+                        @if ($order->delivery_date)
+                            {{ \Carbon\Carbon::parse($order->delivery_date)->format('M d, Y') }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>
+                        @if ($order->status === 'pending' || $order->status === 'paid')
                             <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
                                 @csrf
                                 @method('POST')
                                 <button type="submit" class="btn btn-success">Process Order</button>
                             </form>
+                        @elseif($order->status === 'processed')
+                            <span class="status-badge status-processed">Processed</span>
+                        @elseif($order->status === 'delivered')
+                            <span class="status-badge status-processed">Delivered</span>
+                        @elseif($order->status === 'cancelled')
+                            <span class="status-badge status-cancelled">Cancelled</span>
                         @else
-                            <span class="text-success">Waiting for Carrier</span>
+                            <span class="status-badge status-pending">{{ ucfirst($order->status) }}</span>
                         @endif
                     </td>
                 </tr>

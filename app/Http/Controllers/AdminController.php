@@ -168,7 +168,64 @@ class AdminController extends Controller
             ->get();
             
         // Total sales
-        $totalSales = Order::where('status', 'processed')->sum('total');
+        $totalSales = Order::where(function($query) {
+            // Stripe: count paid, processed, delivered
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            // GCash: count processed, delivered
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            // COD: only delivered
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })->sum('total');
+        
+        // Get sales data for the last 7 days with the same conditions
+        $salesData = Order::where(function($query) {
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })
+        ->where('created_at', '>=', now()->subDays(7))
+        ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
+        ->groupBy('date')
+        ->get();
+            
+        // Get monthly revenue data with the same conditions
+        $monthlyRevenue = Order::where(function($query) {
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })
+        ->where('created_at', '>=', now()->subMonths(6))
+        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as amount')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->get();
 
         return view('admin.dashboard', compact(
             'usersCount',
