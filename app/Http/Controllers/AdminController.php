@@ -25,7 +25,7 @@ class AdminController extends Controller
             ->whereNotNull('delivery_date')
             ->whereDate('delivery_date', '<=', $now->toDateString())
             ->where(function ($query) {
-                $query->whereIn('payment_method', ['cod', 'gcash'])->where('status', ['processed', 'intransit','delivered'])
+                $query->whereIn('payment_method', ['cod', 'gcash'])->whereIn('status', ['processed', 'intransit', 'delivered'])
                     ->orWhere(function ($q) {
                         $q->where('payment_method', 'stripe')->whereIn('status', ['processed', 'intransit','delivered']);
                     });
@@ -55,17 +55,18 @@ class AdminController extends Controller
         $orderQuery = function ($query) {
             $query->where(function ($q) {
                 $q->where('payment_method', 'stripe')
-                    ->whereIn('status', ['processed', 'intransit','delivered']);
+                    ->whereIn('status', ['processed', 'intransit', 'delivered']);
             })
             ->orWhere(function ($q) {
                 $q->where('payment_method', 'gcash')
-                    ->whereIn('status', ['processed', 'intransit','delivered']);
+                    ->whereIn('status', ['processed', 'intransit', 'delivered']);
             })
             ->orWhere(function ($q) {
                 $q->where('payment_method', 'cod')
-                    ->where('status', ['processed', 'intransit','delivered']);
+                    ->whereIn('status', ['processed', 'intransit', 'delivered']);
             });
         };
+
 
         $totalSales = Order::where($orderQuery)->sum('total');
 
