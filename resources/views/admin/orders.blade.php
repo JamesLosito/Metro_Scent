@@ -130,38 +130,38 @@
                 <tr>
                     <td>{{ optional($order->user)->name ?? 'Guest' }}</td>
                     <td>{{ ucfirst($order->status) }}</td>
-                        <td>
-                            @if ($order->delivery_date)
-                                {{ \Carbon\Carbon::parse($order->delivery_date)->format('M d, Y') }}
-                            @else
-                                N/A
-                            @endif
-                          <td>
-                                @if ($order->status === 'pending')
-                                    {{-- Process Order --}}
-                                    <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success mb-2">Process Order</button>
-                                    </form>
-                                @elseif ($order->status === 'processed')
-                                    {{-- Mark as In Transit --}}
-                                    <form action="{{ route('admin.orders.intransit', ['id' => $order->id]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-warning mb-2">Mark as In Transit</button>
-                                    </form>
-                                @elseif ($order->status === 'intransit')
-                                    {{-- Mark as Delivered --}}
-                                    <form action="{{ route('admin.orders.delivered', ['id' => $order->id]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-primary">Mark as Delivered</button>
-                                    </form>
-                                @elseif ($order->status === 'delivered')
-                                    <span class="text-success">Delivered</span>
-                                @else
-                                    <span class="text-muted">{{ ucfirst($order->status) }}</span>
-                                @endif
-                            </td>
-
+                    <td>
+                        @if ($order->delivery_date)
+                            {{ \Carbon\Carbon::parse($order->delivery_date)->format('M d, Y') }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>
+                        @if ($order->status === 'pending')
+                            {{-- Process Order --}}
+                            <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success mb-2">Process Order</button>
+                            </form>
+                        @elseif ($order->status === 'processed')
+                            {{-- Mark as In Transit --}}
+                            <form action="{{ route('admin.orders.intransit', ['id' => $order->id]) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning mb-2">Mark as In Transit</button>
+                            </form>
+                        @elseif ($order->status === 'intransit')
+                            {{-- Mark as Delivered --}}
+                            <form action="{{ route('admin.orders.delivered', ['id' => $order->id]) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Mark as Delivered</button>
+                            </form>
+                        @elseif ($order->status === 'delivered')
+                            <span class="text-success">Delivered</span>
+                        @else
+                            <span class="text-muted">{{ ucfirst($order->status) }}</span>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>

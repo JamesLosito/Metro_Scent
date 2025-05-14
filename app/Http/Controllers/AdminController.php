@@ -214,23 +214,15 @@ class AdminController extends Controller
     /**
      * Mark an order as processed
      */
-    public function processOrder($orderId)
+    public function processOrder($id)
     {
-        $order = Order::find($orderId);
-
-        if ($order) {
-            // Update order status and set delivery date
-            $order->status = 'processing';
-            $order->delivery_date = now(); // You can change this to a specific date logic if needed
+        $order = Order::findOrFail($id);
+        if ($order->status === 'pending') {
+            $order->status = 'processed';
             $order->save();
-
-            // Redirect back to orders.blade.php with a success message
-            return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+            return redirect()->back()->with('success', 'Order marked as processed.');
         }
-
-        // Redirect if order not found
-        return redirect()->route('admin.orders')->with('error', 'Order not found.');
-
+        return redirect()->back()->with('error', 'Only pending orders can be processed.');
     }
 
     /**
