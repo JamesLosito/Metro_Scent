@@ -309,40 +309,47 @@ class AdminController extends Controller
 
     if ($order && $order->status === 'pending') {
         $order->status = 'processed';
+
+        // Set delivery date between 3 to 6 days from created_at
+        $deliveryDays = rand(3, 6);
+        $order->delivery_date = $order->created_at->copy()->addDays($deliveryDays);
+
         $order->save();
 
-        return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+        return redirect()->route('admin.orders')->with('success', 'Order processed and delivery date assigned!');
     }
 
     return redirect()->route('admin.orders')->with('error', 'Order not found or cannot be processed.');
 }
     public function markInTransit($id)
-    {
-        $order = Order::findOrFail($id);
+{
+    $order = Order::findOrFail($id);
 
-        if ($order->status === 'processed') {
-            $order->status = 'intransit';
-            $order->save();
-
-            return redirect()->back()->with('success', 'Order marked as in-transit.');
-        }
-
-        return redirect()->back()->with('error', 'Order is not in the correct state to be marked in-transit.');
-    }    
-    public function markDelivered($id)
-    {
-        $order = Order::findOrFail($id);
-
-        if ($order->status === 'intransit') {
-            $order->status = 'delivered';
-            $order->delivery_date = now(); // Set delivery date only here
-            $order->save();
-
-            return redirect()->back()->with('success', 'Order marked as Delivered.');
-        }
-
-        return redirect()->back()->with('error', 'Order must be in transit before being delivered.');
+    if ($order->status !== 'processed') {
+        return redirect()->back()->with('error', 'Order must be processed before marking as in-transit.');
     }
+
+    $order->status = 'intransit';
+    $order->save();
+
+    return redirect()->back()->with('success', 'Order marked as in-transit.');
+}
+
+public function markDelivered($id)
+{
+    $order = Order::findOrFail($id);
+
+    if ($order->status !== 'intransit') {
+        return redirect()->back()->with('error', 'Order must be in transit before being marked as delivered.');
+    }
+
+    $order->status = 'delivered';
+    $order->delivery_date = now();
+    $order->save();
+
+    return redirect()->back()->with('success', 'Order marked as delivered.');
+}
+
 
 
     /**
