@@ -142,6 +142,7 @@ Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->midd
 Route::get('/admin/orders', [AdminController::class, 'showOrders'])->middleware('auth')->name('admin.orders');
 Route::post('admin/orders/{id}/process', [AdminController::class, 'processOrder'])->name('admin.orders.process');
 Route::post('/admin/orders/{id}/intransit', [AdminController::class, 'markInTransit'])->name('admin.orders.intransit');
+Route::post('/admin/orders/{id}/delivered', [AdminController::class, 'markDelivered'])->name('admin.orders.delivered');
 
 
 // Admin Profile

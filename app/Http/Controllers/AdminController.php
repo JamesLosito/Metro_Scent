@@ -44,7 +44,7 @@ class AdminController extends Controller
             ->get();
             
         // Total sales
-        $totalSales = Order::where('status', 'processed')->sum('total');
+        $totalSales = Order::where('status', 'delivered')->sum('total');
 
         return view('admin.dashboard', compact(
             'usersCount',
@@ -347,16 +347,28 @@ class AdminController extends Controller
             ->with('success', 'User updated successfully.');
     }
     public function markInTransit($id)
-{
-    $order = Order::findOrFail($id);
+    {
+        $order = Order::findOrFail($id);
 
-    if ($order->status === 'processing') {
-        $order->status = 'intransit';
-        $order->save();
+        if ($order->status === 'processing') {
+            $order->status = 'intransit';
+            $order->save();
 
-        return redirect()->back()->with('success', 'Order marked as In Transit.');
+            return redirect()->back()->with('success', 'Order marked as In Transit.');
+        }
+
+        return redirect()->back()->with('error', 'Only processed orders can be marked as In Transit.');
+    }
+    public function markDelivered($id)
+    {
+        $order = Order::findOrFail($id);
+        if ($order->status === 'intransit') {
+            $order->status = 'delivered';
+            $order->delivery_date = now(); // Optional
+            $order->save();
+            return redirect()->back()->with('success', 'Order marked as Delivered.');
+        }
+        return redirect()->back()->with('error', 'Only in-transit orders can be marked as delivered.');
     }
 
-    return redirect()->back()->with('error', 'Only processed orders can be marked as In Transit.');
-}
 }
