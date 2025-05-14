@@ -25,7 +25,7 @@ class AdminController extends Controller
             ->whereNotNull('delivery_date')
             ->whereDate('delivery_date', '<=', $now->toDateString())
             ->where(function ($query) {
-                $query->whereIn('payment_method', ['cod', 'gcash'])->whereIn('status', ['processed', 'intransit', 'delivered'])
+                $query->whereIn('payment_method', ['cod', 'gcash'])->whereIn('status', ['pending', 'processed', 'intransit', 'delivered'])
                     ->orWhere(function ($q) {
                         $q->where('payment_method', 'stripe')->whereIn('status', ['processed', 'intransit','delivered']);
                     });
@@ -55,11 +55,11 @@ class AdminController extends Controller
         $orderQuery = function ($query) {
             $query->where(function ($q) {
                 $q->where('payment_method', 'stripe')
-                    ->whereIn('status', ['processed', 'intransit', 'delivered']);
+                    ->whereIn('status', ['pending', 'processed', 'intransit', 'delivered']);
             })
             ->orWhere(function ($q) {
                 $q->where('payment_method', 'gcash')
-                    ->whereIn('status', ['processed', 'intransit', 'delivered']);
+                    ->whereIn('status', ['pending', 'processed', 'intransit', 'delivered']);
             })
             ->orWhere(function ($q) {
                 $q->where('payment_method', 'cod')
@@ -68,7 +68,14 @@ class AdminController extends Controller
         };
 
 
-        $totalSales = Order::where($orderQuery)->sum('total');
+        $totalSales = Order::where(function ($query) {
+            $query->whereIn('payment_method', ['stripe', 'gcash'])
+                ->whereIn('status', ['pending', 'processed', 'intransit', 'delivered']);
+        })->orWhere(function ($query) {
+            $query->where('payment_method', 'cod')
+                ->whereIn('status', ['processed', 'intransit', 'delivered']);
+        })->sum('total');
+
 
         $salesData = Order::where($orderQuery)
             ->where('created_at', '>=', now()->subDays(7))
