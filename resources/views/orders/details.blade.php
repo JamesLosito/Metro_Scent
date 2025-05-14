@@ -81,9 +81,9 @@
             <p><strong>Full Name:</strong> {{ $order->full_name }}</p>
             <p><strong>Email:</strong> {{ $order->email }}</p>
             <p><strong>Address:</strong> {{ $order->address }}</p>
+            <p><strong>Delivered On:</strong> {{ \Carbon\Carbon::parse($order->delivery_date)->format('F d, Y h:i A') }}</p>
             <p><strong>Payment Method:</strong> {{ ucfirst($order->payment_method) }}</p>
             <p><strong>Total Amount:</strong> ₱{{ number_format($order->total, 2) }}</p>
-
             {{-- Cancel Order Button --}}
             @if(!in_array($order->status, ['cancelled', 'completed', 'intransit', 'delivered']))
                 <form action="{{ route('orders.cancel', $order->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
