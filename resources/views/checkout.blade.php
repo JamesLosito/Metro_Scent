@@ -161,7 +161,9 @@
                     </div>
                 @else
                     <a href="{{ route('cart.index') }}" class="btn btn-primary">Return to Cart</a>
+                    
                 @endif
+                <a href="{{ route('cart.index') }}" class="btn btn-primary">CANCEL</a>
             </form>
         @else
             <div class="alert alert-info">No items selected for checkout.</div>

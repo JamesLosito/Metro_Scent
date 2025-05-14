@@ -37,6 +37,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
                                 <li><a class="dropdown-item" href="{{ url('/profile') }}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ route('orders.my') }}">My Orders</a></li>
                                 <li>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -46,7 +47,6 @@
                                         @csrf
                                     </form>
                                 </li>
-                                <li><a class="dropdown-item" href="{{ route('orders.my') }}">My Orders</a></li>
                             </ul>
                         </li>
 
