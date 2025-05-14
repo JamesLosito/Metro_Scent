@@ -404,7 +404,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- User Distribution Chart -->
             <div class="col-xl-4 col-lg-5">
                 <div class="chart-card">

@@ -255,11 +255,14 @@
                     </td>
                     <td>
                         @if ($order->status === 'pending' || $order->status === 'paid')
-                            <form action="{{ route('admin.orders.process', ['id' => $order->id]) }}" method="POST">
-                                @csrf
-                                @method('POST')
-                                <button type="submit" class="btn btn-success">Process Order</button>
-                            </form>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal{{ $order->id }}">Process Order</button>
+                                <form action="{{ route('admin.orders.cancel', ['id' => $order->id]) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('POST')
+                                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                                </form>
+                            </div>
                         @elseif($order->status === 'processed')
                             <span class="status-badge status-processed">Processed</span>
                         @elseif($order->status === 'delivered')

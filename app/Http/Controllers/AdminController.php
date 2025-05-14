@@ -227,6 +227,13 @@ class AdminController extends Controller
         ->orderBy('month')
         ->get();
 
+        $orderStatusCounts = \App\Models\Order::select('status', \DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->status => $item->count];
+            });
+
         return view('admin.dashboard', compact(
             'usersCount',
             'adminUsersCount',
@@ -240,7 +247,8 @@ class AdminController extends Controller
             'recentOrders',
             'topProducts',
             'lowStockProducts',
-            'outOfStockProducts'
+            'outOfStockProducts',
+            'orderStatusCounts'
         ));
     }
 
@@ -559,6 +567,29 @@ class AdminController extends Controller
             return redirect()->back()->with('success', 'Order marked as Delivered.');
         }
         return redirect()->back()->with('error', 'Only in-transit orders can be marked as delivered.');
+    }
+    public function cancelOrder($orderId)
+    {
+        $order = \App\Models\Order::find($orderId);
+
+        if (!$order) {
+            return redirect()->route('admin.orders')->with('error', 'Order not found.');
+        }
+
+        if ($order->status === 'cancelled') {
+            return redirect()->route('admin.orders')->with('error', 'Order is already cancelled.');
+        }
+
+        // Optionally, prevent cancelling delivered orders
+        if ($order->status === 'delivered') {
+            return redirect()->route('admin.orders')->with('error', 'Cannot cancel a delivered order.');
+        }
+
+        $order->status = 'cancelled';
+        $order->cancelled_at = now();
+        $order->save();
+
+        return redirect()->route('admin.orders')->with('success', 'Order #' . $orderId . ' has been cancelled.');
     }
 
 }
