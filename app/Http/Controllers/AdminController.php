@@ -20,35 +20,18 @@ class AdminController extends Controller
     private function autoDeliverOrders()
     {
         $now = now();
-        // COD orders
-        $codOrders = Order::where('payment_method', 'cod')
-            ->where('status', 'processed')
+
+        $orders = Order::whereIn('payment_method', ['cod', 'gcash', 'stripe'])
             ->whereNotNull('delivery_date')
             ->whereDate('delivery_date', '<=', $now->toDateString())
-            ->get();
-        foreach ($codOrders as $order) {
-            $order->status = 'delivered';
-            $order->delivered_at = $now;
-            $order->save();
-        }
-        // GCash orders
-        $gcashOrders = Order::where('payment_method', 'gcash')
-            ->where('status', 'processed')
-            ->whereNotNull('delivery_date')
-            ->whereDate('delivery_date', '<=', $now->toDateString())
-            ->get();
-        foreach ($gcashOrders as $order) {
-            $order->status = 'delivered';
-            $order->delivered_at = $now;
-            $order->save();
-        }
-        // Stripe orders
-        $stripeOrders = Order::where('payment_method', 'stripe')
-            ->whereIn('status', ['paid', 'processed'])
-            ->whereNotNull('delivery_date')
-            ->whereDate('delivery_date', '<=', $now->toDateString())
-            ->get();
-        foreach ($stripeOrders as $order) {
+            ->where(function ($query) {
+                $query->whereIn('payment_method', ['cod', 'gcash'])->where('status', ['processed', 'intransit','delivered'])
+                    ->orWhere(function ($q) {
+                        $q->where('payment_method', 'stripe')->whereIn('status', ['processed', 'intransit','delivered']);
+                    });
+            })->get();
+
+        foreach ($orders as $order) {
             $order->status = 'delivered';
             $order->delivered_at = $now;
             $order->save();
@@ -61,73 +44,44 @@ class AdminController extends Controller
     public function dashboard()
     {
         $this->autoDeliverOrders();
+
         $usersCount = User::count();
         $adminUsersCount = User::where('is_admin', true)->count();
         $regularUsersCount = User::where('is_admin', false)->count();
         $productsCount = Product::count();
         $ordersPending = Order::where('status', 'pending')->count();
-        
-        // Update sales calculation to handle different payment methods
-        $totalSales = Order::where(function($query) {
-            // Stripe: count paid, processed, delivered
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            // GCash: count processed, delivered
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            // COD: only delivered
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })->sum('total');
-        
-        // Get sales data for the last 7 days with the same conditions
-        $salesData = Order::where(function($query) {
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })
-        ->where('created_at', '>=', now()->subDays(7))
-        ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
-        ->groupBy('date')
-        ->get();
-            
-        // Get monthly revenue data with the same conditions
-        $monthlyRevenue = Order::where(function($query) {
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })
-        ->where('created_at', '>=', now()->subMonths(6))
-        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as amount')
-        ->groupBy('month')
-        ->orderBy('month')
-        ->get();
 
-        // Get product type distribution
+        // Define base order query for sales
+        $orderQuery = function ($query) {
+            $query->where(function ($q) {
+                $q->where('payment_method', 'stripe')
+                    ->whereIn('status', ['processed', 'intransit','delivered']);
+            })
+            ->orWhere(function ($q) {
+                $q->where('payment_method', 'gcash')
+                    ->whereIn('status', ['processed', 'intransit','delivered']);
+            })
+            ->orWhere(function ($q) {
+                $q->where('payment_method', 'cod')
+                    ->where('status', ['processed', 'intransit','delivered']);
+            });
+        };
+
+        $totalSales = Order::where($orderQuery)->sum('total');
+
+        $salesData = Order::where($orderQuery)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
+            ->groupBy('date')
+            ->get();
+
+        $monthlyRevenue = Order::where($orderQuery)
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as amount')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
         $categoryDistribution = Product::select('type', DB::raw('count(*) as count'))
             ->groupBy('type')
             ->get()
@@ -138,15 +92,13 @@ class AdminController extends Controller
                 ];
             });
 
-        // Get recent orders for timeline
         $recentOrders = Order::with('user')
             ->latest()
             ->take(5)
             ->get();
 
-        // Get top selling products
         $topProducts = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
-            ->with(['product' => function($query) {
+            ->with(['product' => function ($query) {
                 $query->select('product_id', 'name');
             }])
             ->groupBy('product_id')
@@ -155,79 +107,18 @@ class AdminController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'name' => $item->product->name,
+                    'name' => $item->product->name ?? 'Unknown',
                     'sales' => $item->total_quantity
                 ];
             });
 
-        // Get stock alerts
         $lowStockProducts = Product::where('stock', '>', 0)
             ->where('stock', '<=', 5)
             ->get();
-        $outOfStockProducts = Product::where('stock', '<=', 0)
-            ->get();
-            
-        // Total sales
-        $totalSales = Order::where(function($query) {
-            // Stripe: count paid, processed, delivered
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            // GCash: count processed, delivered
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            // COD: only delivered
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })->sum('total');
-        
-        // Get sales data for the last 7 days with the same conditions
-        $salesData = Order::where(function($query) {
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })
-        ->where('created_at', '>=', now()->subDays(7))
-        ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
-        ->groupBy('date')
-        ->get();
-            
-        // Get monthly revenue data with the same conditions
-        $monthlyRevenue = Order::where(function($query) {
-            $query->where(function($q) {
-                $q->where('payment_method', 'stripe')
-                  ->whereIn('status', ['paid', 'processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'gcash')
-                  ->whereIn('status', ['processed', 'delivered']);
-            })
-            ->orWhere(function($q) {
-                $q->where('payment_method', 'cod')
-                  ->where('status', 'delivered');
-            });
-        })
-        ->where('created_at', '>=', now()->subMonths(6))
-        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as amount')
-        ->groupBy('month')
-        ->orderBy('month')
-        ->get();
 
-        $orderStatusCounts = \App\Models\Order::select('status', \DB::raw('count(*) as count'))
+        $outOfStockProducts = Product::where('stock', '<=', 0)->get();
+
+        $orderStatusCounts = Order::select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
             ->get()
             ->mapWithKeys(function ($item) {
@@ -413,23 +304,46 @@ class AdminController extends Controller
      * Mark an order as processed
      */
     public function processOrder($orderId)
-    {
-        $order = Order::find($orderId);
+{
+    $order = Order::find($orderId);
 
-        if ($order) {
-            // Update order status and set delivery date
-            $order->status = 'processed';
-            $order->delivery_date = now(); // You can change this to a specific date logic if needed
+    if ($order && $order->status === 'pending') {
+        $order->status = 'processed';
+        $order->save();
+
+        return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+    }
+
+    return redirect()->route('admin.orders')->with('error', 'Order not found or cannot be processed.');
+}
+    public function markInTransit($id)
+    {
+        $order = Order::findOrFail($id);
+
+        if ($order->status === 'processed') {
+            $order->status = 'intransit';
             $order->save();
 
-            // Redirect back to orders.blade.php with a success message
-            return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+            return redirect()->back()->with('success', 'Order marked as in-transit.');
         }
 
-        // Redirect if order not found
-        return redirect()->route('admin.orders')->with('error', 'Order not found.');
+        return redirect()->back()->with('error', 'Order is not in the correct state to be marked in-transit.');
+    }    
+    public function markDelivered($id)
+    {
+        $order = Order::findOrFail($id);
 
+        if ($order->status === 'intransit') {
+            $order->status = 'delivered';
+            $order->delivery_date = now(); // Set delivery date only here
+            $order->save();
+
+            return redirect()->back()->with('success', 'Order marked as Delivered.');
+        }
+
+        return redirect()->back()->with('error', 'Order must be in transit before being delivered.');
     }
+
 
     /**
      * Show the admin's profile
@@ -543,30 +457,6 @@ class AdminController extends Controller
 
         return redirect()->route('admin.users')
             ->with('success', 'User updated successfully.');
-    }
-    public function markInTransit($id)
-    {
-        $order = Order::findOrFail($id);
-
-        if ($order->status === 'processing') {
-            $order->status = 'intransit';
-            $order->save();
-
-            return redirect()->back()->with('success', 'Order marked as In Transit.');
-        }
-
-        return redirect()->back()->with('error', 'Only processed orders can be marked as In Transit.');
-    }
-    public function markDelivered($id)
-    {
-        $order = Order::findOrFail($id);
-        if ($order->status === 'intransit') {
-            $order->status = 'delivered';
-            $order->delivery_date = now(); // Optional
-            $order->save();
-            return redirect()->back()->with('success', 'Order marked as Delivered.');
-        }
-        return redirect()->back()->with('error', 'Only in-transit orders can be marked as delivered.');
     }
     public function cancelOrder($orderId)
     {

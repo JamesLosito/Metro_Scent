@@ -32,6 +32,20 @@ class OrderController extends Controller
 
         return redirect()->back()->with('error', 'This order cannot be cancelled.');
     }
-    
+    public function markInTransit($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->status = 'intransit'; // or however you represent the status
+        $order->save();
 
+        return redirect()->back()->with('success', 'Order marked as in transit.');
+    }
+    public function markDelivered($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->status = 'delivered'; // or however you represent the status
+        $order->save();
+
+        return redirect()->back()->with('success', 'Order marked as delivered.');
+    }
 }

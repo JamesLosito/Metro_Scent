@@ -232,7 +232,9 @@
                         @if($order->status === 'cancelled')
                             <span class="status-badge status-cancelled">Cancelled</span>
                         @elseif($order->status === 'delivered')
-                            <span class="status-badge status-processed">Delivered</span>
+                            <span class="status-badge status-delivered">Delivered</span>
+                        @elseif($order->status === 'intransit')
+                            <span class="status-badge status-intransit">In Transit</span>
                         @elseif($order->status === 'processed')
                             <span class="status-badge status-processed">Processed</span>
                         @elseif($order->status === 'paid')
@@ -240,7 +242,7 @@
                         @elseif($order->status === 'pending')
                             <span class="status-badge status-pending">Pending</span>
                         @else
-                            <span class="status-badge status-pending">{{ ucfirst($order->status) }}</span>
+                            <span class="status-badge status-unknown">{{ ucfirst($order->status) }}</span>
                         @endif
                     </td>
                     <td>{{ ucfirst($order->payment_method) }}</td>
@@ -259,19 +261,23 @@
                                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal{{ $order->id }}">Process Order</button>
                                 <form action="{{ route('admin.orders.cancel', ['id' => $order->id]) }}" method="POST" class="d-inline">
                                     @csrf
-                                    @method('POST')
                                     <button type="submit" class="btn btn-danger">Cancel Order</button>
                                 </form>
                             </div>
-                        @elseif($order->status === 'processed')
-                            <span class="status-badge status-processed">Processed</span>
-                        @elseif($order->status === 'delivered')
-                            <span class="status-badge status-processed">Delivered</span>
-                        @elseif($order->status === 'cancelled')
-                            <span class="status-badge status-cancelled">Cancelled</span>
+                        @elseif ($order->status === 'processed')
+                            <form action="{{ route('admin.orders.intransit', ['id' => $order->id]) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Mark as In Transit</button>
+                            </form>
+                        @elseif ($order->status === 'intransit')
+                            <form action="{{ route('admin.orders.deliver', ['id' => $order->id]) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Mark as Delivered</button>
+                            </form>
                         @else
-                            <span class="status-badge status-pending">{{ ucfirst($order->status) }}</span>
+                            <span class="status-badge status-processed">{{ ucfirst($order->status) }}</span>
                         @endif
+
                     </td>
                 </tr>
             @empty
