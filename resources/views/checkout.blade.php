@@ -24,6 +24,28 @@
             height: auto;
             margin-right: 15px;
         }
+        .stock-status {
+            font-size: 0.9rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .stock-low {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .stock-out {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .stock-ok {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .checkout-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -50,16 +72,17 @@
                             $folder = strtoupper($item->product->type);
                             $imagePath = 'images/' . $folder . '/' . $item->product->image;
                             $isOutOfStock = $item->product->stock <= 0;
+                            $isLowStock = $item->product->stock <= 5 && $item->product->stock > 0;
+                            $stockStatus = $isOutOfStock ? 'out' : ($isLowStock ? 'low' : 'ok');
+                            $stockMessage = $isOutOfStock ? 'Out of Stock' : ($isLowStock ? 'Low Stock' : 'In Stock');
                         @endphp
-                        <li class="list-group-item d-flex align-items-center">
+                        <li class="list-group-item d-flex align-items-center" data-product-id="{{ $item->product->product_id }}" data-current-stock="{{ $item->product->stock }}">
                             <div class="me-3">
                                 <img src="{{ asset($imagePath) }}" alt="{{ $item->product->name }}" class="product-img">
                             </div>
                             <div class="flex-grow-1">
                                 <strong>{{ $item->product->name }}</strong>
-                                @if($isOutOfStock)
-                                    <span class="text-danger">(Out of Stock)</span>
-                                @endif
+                                <span class="stock-status stock-{{ $stockStatus }}">{{ $stockMessage }}</span>
                                 <br>
                                 ₱{{ number_format($item->product->price, 2) }} x 
                                 <input 
@@ -68,15 +91,18 @@
                                     value="{{ $item->quantity }}" 
                                     min="1" 
                                     max="{{ $item->product->stock }}"
-                                    class="form-control form-control-sm w-auto d-inline-block" 
+                                    class="form-control form-control-sm w-auto d-inline-block stock-quantity" 
                                     style="max-width: 70px;" 
                                     readonly
+                                    data-item-id="{{ $item->id }}"
                                 >
+                                <span class="available-stock">({{ $item->product->stock }} available)</span>
                             </div>
                             <span id="itemTotal{{ $item->id }}">₱{{ number_format($itemTotal, 2) }}</span>
                         </li>
                         <input type="hidden" name="selected_items[]" value="{{ $item->id }}">
                         <input type="hidden" name="price[{{ $item->id }}]" value="{{ $item->product->price }}">
+                        <input type="hidden" name="product_ids[]" value="{{ $item->product->product_id }}">
                     @endforeach
                 </ul>
 
@@ -97,6 +123,7 @@
                 </div>
 
                 @if(!$hasOutOfStock)
+                    <div id="stock-verification-message" class="alert alert-info mb-3" style="display: none;"></div>
                     <h5>Billing Information</h5>
                     <div class="mb-3">
                         <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
@@ -186,9 +213,64 @@
         const codSubmit = document.getElementById('cod-submit');
         const cardErrors = document.getElementById('card-errors');
 
-        // Handle form submission for all payment methods
+        // Add stock verification functionality
+        async function verifyStock() {
+            const productIds = Array.from(document.querySelectorAll('input[name="product_ids[]"]')).map(input => input.value);
+            const quantities = {};
+            document.querySelectorAll('.stock-quantity').forEach(input => {
+                quantities[input.dataset.itemId] = parseInt(input.value);
+            });
+
+            try {
+                const response = await fetch('{{ route("checkout.verifyStock") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_ids: productIds,
+                        quantities: quantities
+                    })
+                });
+
+                const data = await response.json();
+                const stockMessage = document.getElementById('stock-verification-message');
+                const submitButtons = document.querySelectorAll('button[type="submit"]');
+                
+                if (!data.success) {
+                    stockMessage.className = 'alert alert-danger mb-3';
+                    stockMessage.textContent = data.message;
+                    stockMessage.style.display = 'block';
+                    submitButtons.forEach(button => {
+                        button.disabled = true;
+                        button.classList.add('checkout-disabled');
+                    });
+                    return false;
+                } else {
+                    stockMessage.style.display = 'none';
+                    submitButtons.forEach(button => {
+                        button.disabled = false;
+                        button.classList.remove('checkout-disabled');
+                    });
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error verifying stock:', error);
+                return false;
+            }
+        }
+
+        // Verify stock before form submission
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Verify stock first
+            const stockVerified = await verifyStock();
+            if (!stockVerified) {
+                return;
+            }
+
             const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
             if (paymentMethod === 'stripe') {
@@ -272,6 +354,12 @@
             e.preventDefault();
             form.submit();
         });
+
+        // Verify stock when page loads
+        document.addEventListener('DOMContentLoaded', verifyStock);
+
+        // Update stock status every 30 seconds
+        setInterval(verifyStock, 30000);
     </script>
 
     <!-- Bootstrap JS -->

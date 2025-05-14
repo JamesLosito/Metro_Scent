@@ -12,6 +12,7 @@ use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Stripe\PaymentIntent;
+use App\Models\Product;
 
 class CheckoutController extends Controller
 {
@@ -181,5 +182,49 @@ class CheckoutController extends Controller
         }]);
         
         return view('checkout.success', compact('order'));
+    }
+
+    /**
+     * Verify stock availability for products in real-time
+     */
+    public function verifyStock(Request $request)
+    {
+        try {
+            $request->validate([
+                'product_ids' => 'required|array',
+                'product_ids.*' => 'exists:products,product_id',
+                'quantities' => 'required|array',
+                'quantities.*' => 'required|integer|min:1'
+            ]);
+
+            $productIds = $request->product_ids;
+            $quantities = $request->quantities;
+
+            // Get current stock levels for all products
+            $products = Product::whereIn('product_id', $productIds)->get();
+            
+            // Check stock for each product
+            foreach ($products as $product) {
+                $requestedQuantity = $quantities[$product->product_id] ?? 0;
+                
+                if ($product->stock < $requestedQuantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock for {$product->name}. Only {$product->stock} items available."
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock verification successful'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error verifying stock: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

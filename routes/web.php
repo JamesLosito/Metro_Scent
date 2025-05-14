@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::post('/checkout/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.createPaymentIntent');
+    Route::post('/checkout/verify-stock', [CheckoutController::class, 'verifyStock'])->name('checkout.verifyStock');
     Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 });
 
@@ -141,6 +142,7 @@ Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->midd
 // Orders
 Route::get('/admin/orders', [AdminController::class, 'showOrders'])->middleware('auth')->name('admin.orders');
 Route::post('admin/orders/{id}/process', [AdminController::class, 'processOrder'])->name('admin.orders.process');
+Route::post('admin/orders/{id}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');
 
 
 // Admin Profile

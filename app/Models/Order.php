@@ -14,7 +14,9 @@ class Order extends Model
         'stripe_payment_intent',
         'user_id',
         'payment_method',
-        'status'
+        'status',
+        'delivery_date',
+        'processing_notes'
     ];
 
     public function orderItems()
@@ -26,6 +28,7 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
     public function products()
     {
         return $this->belongsTo(Product::class, 'order_items');

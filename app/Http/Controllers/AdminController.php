@@ -5,56 +5,182 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    /**
+     * Automatically mark COD and GCash orders as delivered if delivery date has passed
+     */
+    private function autoDeliverOrders()
+    {
+        $now = now();
+        // COD orders
+        $codOrders = Order::where('payment_method', 'cod')
+            ->where('status', 'processed')
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<=', $now->toDateString())
+            ->get();
+        foreach ($codOrders as $order) {
+            $order->status = 'delivered';
+            $order->delivered_at = $now;
+            $order->save();
+        }
+        // GCash orders
+        $gcashOrders = Order::where('payment_method', 'gcash')
+            ->where('status', 'processed')
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<=', $now->toDateString())
+            ->get();
+        foreach ($gcashOrders as $order) {
+            $order->status = 'delivered';
+            $order->delivered_at = $now;
+            $order->save();
+        }
+        // Stripe orders
+        $stripeOrders = Order::where('payment_method', 'stripe')
+            ->whereIn('status', ['paid', 'processed'])
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<=', $now->toDateString())
+            ->get();
+        foreach ($stripeOrders as $order) {
+            $order->status = 'delivered';
+            $order->delivered_at = $now;
+            $order->save();
+        }
+    }
+
     /**
      * Admin Dashboard Summary
      */
     public function dashboard()
     {
-        // Basic counts
+        $this->autoDeliverOrders();
         $usersCount = User::count();
+        $adminUsersCount = User::where('is_admin', true)->count();
+        $regularUsersCount = User::where('is_admin', false)->count();
         $productsCount = Product::count();
         $ordersPending = Order::where('status', 'pending')->count();
         
-        // User distribution
-        $adminUsersCount = User::where('is_admin', true)->count();
-        $regularUsersCount = User::where('is_admin', false)->count();
+        // Update sales calculation to handle different payment methods
+        $totalSales = Order::where(function($query) {
+            // Stripe: count paid, processed, delivered
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            // GCash: count processed, delivered
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            // COD: only delivered
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })->sum('total');
         
-        // Sales data (last 7 days)
-        $salesData = Order::where('status', 'processed')
-            ->where('created_at', '>=', now()->subDays(7))
-            ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
-            ->groupBy('date')
-            ->get();
+        // Get sales data for the last 7 days with the same conditions
+        $salesData = Order::where(function($query) {
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })
+        ->where('created_at', '>=', now()->subDays(7))
+        ->selectRaw('DATE(created_at) as date, SUM(total) as amount')
+        ->groupBy('date')
+        ->get();
             
-        // Top selling products
-        $topProducts = Product::withCount(['orderItems as sales' => function($query) {
-                $query->whereHas('order', function($q) {
-                    $q->where('status', 'processed');
-                });
-            }])
-            ->orderBy('sales', 'desc')
+        // Get monthly revenue data with the same conditions
+        $monthlyRevenue = Order::where(function($query) {
+            $query->where(function($q) {
+                $q->where('payment_method', 'stripe')
+                  ->whereIn('status', ['paid', 'processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'gcash')
+                  ->whereIn('status', ['processed', 'delivered']);
+            })
+            ->orWhere(function($q) {
+                $q->where('payment_method', 'cod')
+                  ->where('status', 'delivered');
+            });
+        })
+        ->where('created_at', '>=', now()->subMonths(6))
+        ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as amount')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->get();
+
+        // Get product type distribution
+        $categoryDistribution = Product::select('type', DB::raw('count(*) as count'))
+            ->groupBy('type')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => ucfirst($item->type),
+                    'count' => $item->count
+                ];
+            });
+
+        // Get recent orders for timeline
+        $recentOrders = Order::with('user')
+            ->latest()
             ->take(5)
             ->get();
-            
-        // Total sales
-        $totalSales = Order::where('status', 'processed')->sum('total');
+
+        // Get top selling products
+        $topProducts = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->with(['product' => function($query) {
+                $query->select('product_id', 'name');
+            }])
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->product->name,
+                    'sales' => $item->total_quantity
+                ];
+            });
+
+        // Get stock alerts
+        $lowStockProducts = Product::where('stock', '>', 0)
+            ->where('stock', '<=', 5)
+            ->get();
+        $outOfStockProducts = Product::where('stock', '<=', 0)
+            ->get();
 
         return view('admin.dashboard', compact(
             'usersCount',
-            'productsCount',
-            'ordersPending',
             'adminUsersCount',
             'regularUsersCount',
+            'productsCount',
+            'ordersPending',
+            'totalSales',
             'salesData',
+            'monthlyRevenue',
+            'categoryDistribution',
+            'recentOrders',
             'topProducts',
-            'totalSales'
+            'lowStockProducts',
+            'outOfStockProducts'
         ));
     }
 
@@ -142,13 +268,14 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'type' => 'required|string|in:captivating,intense'
         ]);
 
         $product = Product::where('product_id', $id)->firstOrFail();
-        $data = $request->only('name', 'price', 'description', 'type');
+        $data = $request->only('name', 'price', 'stock', 'description', 'type');
         $data['type'] = strtolower($data['type']);
 
         if ($request->hasFile('image')) {
@@ -207,30 +334,117 @@ class AdminController extends Controller
      */
     public function showOrders()
     {
-        $orders = Order::with('user', 'products')->get();
+        $this->autoDeliverOrders();
+        $orders = Order::with(['user', 'orderItems.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return view('admin.orders', compact('orders'));
     }
 
     /**
      * Mark an order as processed
      */
-    public function processOrder($orderId)
+    public function processOrder(Request $request, $orderId)
     {
-        $order = Order::find($orderId);
+        try {
+            $request->validate([
+                'delivery_date' => 'required|date|after_or_equal:today',
+                'notes' => 'nullable|string|max:500'
+            ]);
 
-        if ($order) {
-            // Update order status and set delivery date
-            $order->status = 'processed';
-            $order->delivery_date = now(); // You can change this to a specific date logic if needed
+            $order = Order::with('orderItems.product')->findOrFail($orderId);
+
+            // Check if order can be processed
+            if ($order->status === 'processed' && $order->payment_method === 'gcash') {
+                return redirect()->route('admin.orders')
+                    ->with('error', 'GCash order #' . $orderId . ' is already processed.');
+            }
+
+            if ($order->status === 'delivered' && $order->payment_method === 'cod') {
+                return redirect()->route('admin.orders')
+                    ->with('error', 'COD order #' . $orderId . ' is already delivered.');
+            }
+
+            if ($order->status === 'cancelled') {
+                return redirect()->route('admin.orders')
+                    ->with('error', 'Cannot process a cancelled order.');
+            }
+
+            // Check if all products are in stock
+            foreach ($order->orderItems as $item) {
+                if ($item->product->stock < $item->quantity) {
+                    return redirect()->route('admin.orders')
+                        ->with('error', 'Insufficient stock for product: ' . $item->product->name);
+                }
+            }
+
+            // Start transaction to ensure data consistency
+            DB::beginTransaction();
+            try {
+                // Update order status and details based on payment method
+                if ($order->payment_method === 'cod') {
+                    $order->status = 'processed';
+                    $order->processed_at = now();
+                } elseif ($order->payment_method === 'gcash') {
+                    $order->status = 'processed';
+                    $order->processed_at = now();
+                }
+                // Stripe: do not change status
+
+                $order->delivery_date = $request->delivery_date;
+                $order->processing_notes = $request->notes;
+                $order->save();
+
+                // Update product stock
+                foreach ($order->orderItems as $item) {
+                    $product = $item->product;
+                    $product->stock -= $item->quantity;
+                    $product->save();
+                }
+
+                DB::commit();
+
+                $statusMessage = $order->payment_method === 'cod' ? 'processed' : 'processed';
+                return redirect()->route('admin.orders')
+                    ->with('success', 'Order #' . $orderId . ' has been ' . $statusMessage . ' successfully!');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('admin.orders')
+                ->with('error', 'Failed to process order: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel an order
+     */
+    public function cancelOrder($orderId)
+    {
+        try {
+            $order = Order::findOrFail($orderId);
+
+            if ($order->status === 'processed') {
+                return redirect()->route('admin.orders')
+                    ->with('error', 'Cannot cancel a processed order.');
+            }
+
+            if ($order->status === 'cancelled') {
+                return redirect()->route('admin.orders')
+                    ->with('error', 'Order is already cancelled.');
+            }
+
+            $order->status = 'cancelled';
+            $order->cancelled_at = now();
             $order->save();
 
-            // Redirect back to orders.blade.php with a success message
-            return redirect()->route('admin.orders')->with('success', 'Order processed successfully!');
+            return redirect()->route('admin.orders')
+                ->with('success', 'Order #' . $orderId . ' has been cancelled.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.orders')
+                ->with('error', 'Failed to cancel order: ' . $e->getMessage());
         }
-
-        // Redirect if order not found
-        return redirect()->route('admin.orders')->with('error', 'Order not found.');
-
     }
 
     /**
