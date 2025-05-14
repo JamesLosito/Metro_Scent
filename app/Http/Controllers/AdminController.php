@@ -218,7 +218,7 @@ class AdminController extends Controller
     {
         $order = Order::findOrFail($id);
         if ($order->status === 'pending') {
-            $order->status = 'processed';
+            $order->status = 'processing';
             $order->save();
             return redirect()->back()->with('success', 'Order marked as processed.');
         }
