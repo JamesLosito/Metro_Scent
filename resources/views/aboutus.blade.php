@@ -206,6 +206,57 @@
             letter-spacing: 2px;
             text-transform: uppercase;
         }
+        .team-photo {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+        }
+
+        .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Pulsing ring effect */
+        .team-photo::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150px;
+            height: 150px;
+            border: 3px solid #5d1d48;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* Trigger pulsing animation on hover */
+        .team-photo:hover::after {
+            animation: pulseRing 1.2s infinite ease-out;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            70% {
+                transform: translate(-50%, -50%) scale(1.6);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.6);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -258,49 +309,49 @@
     </section>
 
     <!-- Team Section -->
-    <section class="team-section">
-        <div class="container">
-            <h2 class="section-title">Meet The Team</h2>
-            <div class="row mt-5">
-                <div class="col-md-3 col-6">
-                    <div class="team-member">
-                        <div class="team-photo">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="team-name">Lance Gabriele Manzanillio</h3>
-                        <p class="team-position">Backend</p>
+<section class="team-section">
+    <div class="container">
+        <h2 class="section-title">Meet The Team</h2>
+        <div class="row mt-5">
+            <div class="col-md-3 col-6">
+                <div class="team-member">
+                    <div class="team-photo">
+                        <img src="images/team/lance.jpg" alt="Team Member 1" class="img-fluid rounded-circle">
                     </div>
+                    <h3 class="team-name">Lance Gabriele Manzanillo</h3>
+                    <p class="team-position">Backend</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="team-member">
-                        <div class="team-photo">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="team-name">Myka Naparato</h3>
-                        <p class="team-position">Frontend</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="team-member">
+                    <div class="team-photo">
+                        <img src="images/team/arjay.jpg" alt="Team Member 2" class="img-fluid rounded-circle">
                     </div>
+                    <h3 class="team-name">Arjay Lagunoy</h3>
+                    <p class="team-position">Frontend</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="team-member">
-                        <div class="team-photo">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="team-name">Arjay Lagunoy</h3>
-                        <p class="team-position">Frontend</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="team-member">
+                    <div class="team-photo">
+                        <img src="images/team/myka.jpg" alt="Team Member 3" class="img-fluid rounded-circle">
                     </div>
+                    <h3 class="team-name">Myka Naparato</h3>
+                    <p class="team-position">Frontend</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="team-member">
-                        <div class="team-photo">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="team-name">John James Losito</h3>
-                        <p class="team-position">Backend</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="team-member">
+                    <div class="team-photo">
+                        <img src="images/team/johnjames.jpg" alt="Team Member 4" class="img-fluid rounded-circle">
                     </div>
+                    <h3 class="team-name">John James Losito</h3>
+                    <p class="team-position">Backend</p>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Footer -->
     @include('components.footer')
